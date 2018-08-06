@@ -2,36 +2,13 @@
 
 // User commands
 
-module.exports.commands = {
-	greenglassdoors: {
-		run: (message, args) => playGreenGlassDoors(message, args.join(' ')),
-		usage: (prefix) => `${prefix}greenglassdoors __item__`,
-		desc: 'Tells if you can bring __item__ through the green glass doors.',
-		aliases: (prefix) => `${prefix}ggg`
-	},
-	get ggg() {
-		return this.greenglassdoors;
-	},
-	fourisinfinity: {
-		run: (message, args) => playFourIsInfinity(message, args.join(' ')),
-		usage: (prefix) => `${prefix}fourisinfinity __number__`,
-		desc: 'Tells you what number __number__ is, according to the rules of the game. See if you can guess what it is! No hints.'
-	}
+module.exports = {
+	run: (message, args) => playFourIsInfinity(message, parseInt(args.join(' '))),
+	usage: (prefix) => `${prefix}fourisinfinity __number__`,
+	desc: 'Tells you what number __number__ is, according to the rules of the game. See if you can guess what it is! No hints.'
 };
 
-function playGreenGlassDoors(message, phrase) {
-	if (!/[\sa-z]+/i.test(phrase))
-		return message.channel.send('You need to choose something to bring!').catch(console.error);
-    
-	for (let i = 1; i < phrase.length; i++)
-		if (phrase.charAt(i).toLowerCase() === phrase.charAt(i-1).toLowerCase())
-			return message.channel.send(`Yes, you can bring ${phrase} through the Green Glass Doors.`).catch(console.error);
-    
-	message.channel.send(`No, you cannot bring ${phrase} through the Green Glass Doors.`);
-}
-
-function playFourIsInfinity(message, number) {
-	let num = parseInt(number);
+function playFourIsInfinity(message, num) {
 	if (!num)
 		return message.channel.send('That is not a valid number- only the digits 0-9 are allowed.').catch(console.error);    
     

@@ -1,21 +1,18 @@
 'use strict';
 
 const RichEmbed = require('discord.js').RichEmbed;
-const general = require('./general.js');
 
 // User commands
 
-module.exports.commands = {
-	spyfall: {
-		run: (message, args) => playSpyfall(message, args),
-		usage: (prefix) => `${prefix}spyfall [**-l**] [-v __edition__]`,
-		desc: 'Play Spyfall with a group of friends!',
-		options: {
-			'**-v, --version**': 'Plays with the locations in Spyfall __edition__ (1, 2, or "both")',
-			'**-l, --leave**': 'If the user is in a game, leaves it'
-		},
+module.exports = {
+	run: (message, args) => playSpyfall(message, args),
+	usage: (prefix) => `${prefix}spyfall [**-l**] [-v __edition__]`,
+	desc: 'Play Spyfall with a group of friends!',
+	options: {
+		'**-v, --version**': 'Plays with the locations in Spyfall __edition__ (1, 2, or "both")',
+		'**-l, --leave**': 'If the user is in a game, leaves it'
 	}
-};
+}
 
 async function playSpyfall(message, args) {
 	let server = global.servers[message.guild.id];
@@ -45,10 +42,10 @@ async function playSpyfall(message, args) {
 		for (let i = 0; i < args.length; i++) {
 			/* eslint-disable indent, no-case-declarations, no-fallthrough */
 			switch (args[i]) {
-				case '--cancel':
-				case '-c':
-					general.endGame(message);
-					break;
+				// case '--cancel':
+				// case '-c':
+				// 	general.endGame(message);
+				// 	break;
 				case '--view':
 				case '-v':
 					let gameID = server.players[message.author.id].tictactoe;

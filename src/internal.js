@@ -1,7 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
 module.exports.testReactions = async (message) => {
 	const msg = await message.channel.send('React to this message in the next minute to get information about emojis:');
 	const collector = msg.createReactionCollector(r => r.users.get(message.author.id), {maxUsers: 1, time: 60 * 1000});
@@ -9,12 +7,6 @@ module.exports.testReactions = async (message) => {
 		console.log(collected.first().emoji.name);
 	});
 	return;
-};
-
-module.exports.getCommands = () => {
-	var commands = {};
-	fs.readdirSync('src').forEach(file => Object.assign(commands, require(`./${file}`).commands));
-	return commands;
 };
 
 module.exports.endGame = (message) => {

@@ -1,21 +1,19 @@
 'use strict';
 
-const TicTacToeGame = require('./TicTacToeGame.js');
-const internal = require('./internal.js');
+const TicTacToeGame = require('./../TicTacToeGame.js');
+const internal = require('./../internal.js');
 
-module.exports.commands = {
-	tictactoe: {
-		run: (message, args) => playTicTacToe(message, args),
-		usage: (prefix) => `${prefix}tictactoe [**-s**] [**-d** __difficulty__] [**-g** __playernum__] [-c]`,
-		desc: 'Plays Tic Tac Toe!',
-		options: {
-			'**-s, --singleplayer**': 'Starts a singleplayer game.',
-			'**-d, --difficulty** __difficulty__': 'Sets the difficulty to __difficulty__. Assumes **-s**.',
-			'**-g, --go**': 'Begins the game with you as the __playernum__th player.',
-			'**-c, --cancel**': 'If the user is in a game, cancels it'
-		},
-		aliases: (prefix) => `${prefix}ttt`
+module.exports = {
+	run: (message, args) => playTicTacToe(message, args),
+	usage: (prefix) => `${prefix}tictactoe [**-s**] [**-d** __difficulty__] [**-g** __playernum__] [-c]`,
+	desc: 'Plays Tic Tac Toe!',
+	options: {
+		'**-s, --singleplayer**': 'Starts a singleplayer game.',
+		'**-d, --difficulty** __difficulty__': 'Sets the difficulty to __difficulty__. Assumes **-s**.',
+		'**-g, --go**': 'Begins the game with you as the __playernum__th player.',
+		'**-c, --cancel**': 'If the user is in a game, cancels it'
 	},
+	aliases: (prefix) => `${prefix}ttt`,
 	get ttt() {
 		return this.tictactoe;
 	}

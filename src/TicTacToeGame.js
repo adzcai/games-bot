@@ -170,7 +170,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		return rowSelected && colSelected;
 	}, {time: 5 * 60 * 1000});
 
-	collector.on('collect', async (r, colr) => {
+	collector.on('collect', (r, colr) => {
 		let row = this.reactions[['1⃣', '2⃣', '3⃣'].filter(row => reactionFilter(r, row))[0]];
 		let col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
@@ -186,7 +186,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		this.resetReactions();
 		
 		if (this.status === 'ended') {
-			await this.channel.send(this.currentState.result);
+			this.channel.send(global.bot.users.get(Object.keys(this.players).map(id => this.players[id].symbol === this.currentState.result[0])[0]));
 			colr.stop('game over');
 			this.boardMessage.clearReactions();
 			Object.keys(this.players).forEach(id => delete global.servers[this.channel.guild.id].players[id].tictactoe);
@@ -199,7 +199,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 	});
 };
 
-TicTacToeGame.prototype.switchPlayer = async function () {
+TicTacToeGame.prototype.switchPlayer = function () {
 	let playerIDs = Object.keys(this.players);
 	playerIDs.splice(playerIDs.indexOf(this.currentPlayer.id), 1);
 	this.currentPlayer = Object.assign({}, this.players[playerIDs[0]]);
@@ -234,6 +234,7 @@ TicTacToeGame.prototype.advanceTo = function (state) {
 	this.boardMessage.edit({embed: this.boardEmbed()});
 	const term = Board.isTerminal(this.currentState.board);
 	this.currentState.result = term ? term : 'running';
+	this.switchPlayer();
 	if (/(?:X|O)-won|draw/i.test(this.currentState.result)) {
 		this.status = 'ended';
 		return;
@@ -266,6 +267,7 @@ TicTacToeGame.prototype.minimaxValue = function (state) {
 };
 
 TicTacToeGame.prototype.aiMove = function () {
+	if (this.status !== 'running') return;
 	const available = Board.emptyCells(this.currentState.board);
 	let action;
 	const turn = this.currentState.currentPlayerSymbol === 'X';

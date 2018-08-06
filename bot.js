@@ -1,8 +1,10 @@
 'use strict';
 
 const Discord = require('discord.js');
+const fs = require('fs');
 const auth = require('./res/auth.json');
-const commands = require('./src/internal.js').getCommands();
+let commands = {};
+fs.readdirSync('src/commands').forEach(file => commands[file.slice(0, -3)] = require(`./src/commands/${file}`));
 
 const bot = new Discord.Client();
 global.bot = bot;
@@ -19,6 +21,7 @@ bot.on('ready', async () => {
 		};
 		bot.guilds.get(guildID).members.forEach((member, memberID) => global.servers[guildID].players[memberID] = {});
 	});
+	bot.generateInvite(['ADMINISTRATOR']).then(invite => console.log(invite));
 });
 
 bot.on('message', async (message) => {
