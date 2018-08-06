@@ -1,0 +1,33 @@
+{
+  "name": "games-bot",
+  "version": "1.0.0",
+  "description": "A discord bot programmed using discord.js to play several turn-based board games",
+  "main": "bot.js",
+  "dependencies": {
+    "bufferutil": "^4.0.0",
+    "discord.js": "^11.3.2",
+    "fs": "0.0.1-security"
+  },
+  "scripts": {
+    "test": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piguyinthesky/games-bot.git"
+  },
+  "keywords": [
+    "board",
+    "games",
+    "multiplayer",
+    "fun",
+    "entertainment",
+    "turn-based",
+    "tic-tac-toe"
+  ],
+  "author": "PiGuyInTheSky",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/piguyinthesky/games-bot/issues"
+  },
+  "homepage": "https://github.com/piguyinthesky/games-bot#readme"
+}
