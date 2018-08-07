@@ -32,15 +32,11 @@ function Card(value, suit) {
 	this.value = value;
 	this.suit = suit;
     
-	this.shortDescription = function () {
-		return this.value + this.suit.charAt(0);
-	};
+	this.shortDescription = this.value + this.suit.charAt(0);
     
 	this.imageURL = 'res/cards/' + this.shortDescription() + '.jpg';
     
-	this.description = function () {
-		return 'The ' + this.value + ' of ' + this.suit;
-	};
+	this.description = 'The ' + this.value + ' of ' + this.suit;
 
 	this.show = function (message) {
 		message.channel.send(this.description(), {file: this.imageURL}).catch(console.error);

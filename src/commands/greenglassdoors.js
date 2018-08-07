@@ -1,9 +1,9 @@
 module.exports = {
-    run: (message, args) => playGreenGlassDoors(message, args.join(' ')),
-    usage: (prefix) => `${prefix}greenglassdoors __item__`,
-    desc: 'Tells if you can bring __item__ through the green glass doors.',
-    aliases: (prefix) => `${prefix}ggg`
-}
+	run: (message, args) => playGreenGlassDoors(message, args.join(' ')),
+	usage: (prefix) => `${prefix}greenglassdoors __item__`,
+	desc: 'Tells if you can bring __item__ through the green glass doors.',
+	aliases: ['ggg']
+};
 
 function playGreenGlassDoors(message, phrase) {
 	if (!/[\sa-z]+/i.test(phrase))

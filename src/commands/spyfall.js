@@ -12,7 +12,7 @@ module.exports = {
 		'**-v, --version**': 'Plays with the locations in Spyfall __edition__ (1, 2, or "both")',
 		'**-l, --leave**': 'If the user is in a game, leaves it'
 	}
-}
+};
 
 async function playSpyfall(message, args) {
 	let server = global.servers[message.guild.id];

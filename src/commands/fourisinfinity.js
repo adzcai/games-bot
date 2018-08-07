@@ -5,7 +5,8 @@
 module.exports = {
 	run: (message, args) => playFourIsInfinity(message, parseInt(args.join(' '))),
 	usage: (prefix) => `${prefix}fourisinfinity __number__`,
-	desc: 'Tells you what number __number__ is, according to the rules of the game. See if you can guess what it is! No hints.'
+	desc: 'Tells you what number __number__ is, according to the rules of the game. See if you can guess what it is! No hints.',
+	aliases: ['4isinf']
 };
 
 function playFourIsInfinity(message, num) {

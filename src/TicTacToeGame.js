@@ -175,6 +175,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		let col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
 		let ind = row * 3 + col;
+		if (this.currentState.board.contents[ind] !== ' ') throw new Error('That is not a valid move!');
 		let next = new BoardGameState(this.currentState);
 		next.board.contents[ind] = this.currentState.currentPlayerSymbol;
 		next.currentPlayerSymbol = next.currentPlayerSymbol === 'X' ? 'O' : 'X';
@@ -186,7 +187,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		this.resetReactions();
 		
 		if (this.status === 'ended') {
-			this.channel.send(global.bot.users.get(Object.keys(this.players).map(id => this.players[id].symbol === this.currentState.result[0])[0]));
+			this.channel.send(global.bot.users.get(this.currentPlayer.id)).catch(console.error);
 			colr.stop('game over');
 			this.boardMessage.clearReactions();
 			Object.keys(this.players).forEach(id => delete global.servers[this.channel.guild.id].players[id].tictactoe);

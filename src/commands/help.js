@@ -1,10 +1,10 @@
 const fs = require('fs');
 const RichEmbed = require('discord.js').RichEmbed;
 module.exports = {
-    run: (message) => sendHelp(message),
-    usage: (prefix) => `${prefix}help`,
-    desc: 'sends help'
-}
+	run: (message) => sendHelp(message),
+	usage: (prefix) => `${prefix}help`,
+	desc: 'sends help'
+};
 
 function sendHelp (message) {
 	const help = new RichEmbed()
@@ -20,7 +20,7 @@ function sendHelp (message) {
 		.setDescription('A list of commands this bot listens to.');
 
 	fs.readdirSync('src/commands').forEach(cmdName => {
-		const command = require(`./${cmdName}`)
+		const command = require(`./${cmdName}`);
 		cmds.addField(`${prefix}${cmdName}`, `${command.desc}
 		${command.usage ? `Usage: ${command.usage(prefix)}` : 'No usage defined yet'}`);
 	});
