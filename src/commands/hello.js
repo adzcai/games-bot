@@ -11,7 +11,7 @@ module.exports = {
 			lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
 		message.channel.send(`${languages[lang]}! (${lang})`).catch(console.error);
 	}
-}
+};
 
 const languages = {
 	'Portuguese': 'Olá',

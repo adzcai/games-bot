@@ -1,21 +1,35 @@
 'use strict';
 
-module.exports.testReactions = async (message) => {
-	const msg = await message.channel.send('React to this message in the next minute to get information about emojis:');
-	const collector = msg.createReactionCollector(r => r.users.get(message.author.id), {maxUsers: 1, time: 60 * 1000});
-	collector.on('end', collected => {
-		console.log(collected.first().emoji.name);
-	});
-	return;
-};
-
 module.exports.endGame = (message) => {
 	let server = global.servers[message.guild.id];
 	if (typeof server.players[message.author.id].tictactoe !== 'number')
-		return message.channel.send('You are not currently in a game to cancel');
+		throw new Error('You are not currently in a game to cancel');
 
 	let id = server.players[message.author.id];
 	server.games[id].players.forEach(player => delete server.players[player].tictactoe);
 	delete server.games[id];
 	return message.channel.send('Game cancelled');
+};
+
+module.exports.clone = (obj) => {
+	let clone = {};
+	for (let i in obj) {
+		if (obj[i] != null &&  typeof obj[i] == 'object')
+			clone[i] = clone(obj[i]);
+		else
+			clone[i] = obj[i];
+	}
+	return clone;
+};
+
+module.exports.shuffle = (list) => {
+	let arr = list.slice();
+	let j, x, i;
+	for (i = arr.length - 1; i > 0; i--) {
+		j = Math.floor(Math.random() * (i + 1));
+		x = arr[i];
+		arr[i] = arr[j];
+		arr[j] = x;
+	}
+	return arr;
 };

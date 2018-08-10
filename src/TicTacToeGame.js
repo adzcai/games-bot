@@ -16,25 +16,6 @@ function TicTacToeGame (id, channel) {
 TicTacToeGame.prototype = Object.create(Game.prototype);
 TicTacToeGame.prototype.constructor = TicTacToeGame;
 
-TicTacToeGame.prototype.sendCollectorEndedMessage = async function (reason) {
-	return await this.channel.send(`Collector ended. Reason: ${reason}. Type "cancel" to cancel this game and then type .ttt to start a new one.`).catch(console.error);
-};
-
-TicTacToeGame.prototype.resetReactions = async function () {
-	try {
-		await this.boardMessage.clearReactions().catch(console.error);
-		for (let emoji = 0; emoji < Object.keys(this.reactions).length; emoji++)
-			await this.boardMessage.react(Object.keys(this.reactions)[emoji]);
-	} catch (err) {
-		console.error(err);
-	}
-};
-
-TicTacToeGame.prototype.reactionsReset = function (reaction) {
-	const reactedEmojis = reaction.message.reactions.map(re => re.emoji.name);
-	return (Object.keys(this.reactions).every(emoji => reactedEmojis.includes(emoji)));
-};
-
 TicTacToeGame.prototype.start = async function (settings) {
 	if (settings.players) settings.players.forEach(id => {
 		const symbol = ['X', 'O'][Object.keys(this.players).length];
@@ -164,7 +145,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 	const collector = msg.createReactionCollector(r => {
 		if (this.status !== 'running') return;
 		if (this.currentPlayer.id === global.bot.user.id) return;
-		if (!this.reactionsReset(r)) return;
+		if (!this.reactionsReset(r.message)) return;
 		const rowSelected = ['1⃣', '2⃣', '3⃣'].some(row => reactionFilter(r, row));
 		const colSelected = ['🇦', '🇧', '🇨'].some(col => reactionFilter(r, col));
 		return rowSelected && colSelected;
@@ -175,7 +156,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		let col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
 		let ind = row * 3 + col;
-		if (this.currentState.board.contents[ind] !== ' ') throw new Error('That is not a valid move!');
+		if (this.currentState.board.contents[ind] !== ' ') return msg.channel.send('That is not a valid move!');
 		let next = new BoardGameState(this.currentState);
 		next.board.contents[ind] = this.currentState.currentPlayerSymbol;
 		next.currentPlayerSymbol = next.currentPlayerSymbol === 'X' ? 'O' : 'X';
@@ -183,15 +164,17 @@ TicTacToeGame.prototype.startPlaying = async function () {
 
 		if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol))
 			this.aiMove();
-
-		this.resetReactions();
 		
 		if (this.status === 'ended') {
-			this.channel.send(global.bot.users.get(this.currentPlayer.id)).catch(console.error);
+			let player = global.bot.users.get(this.currentPlayer.id);
+			this.channel.send(`${player} won! GG`).catch(console.error);
 			colr.stop('game over');
 			this.boardMessage.clearReactions();
 			Object.keys(this.players).forEach(id => delete global.servers[this.channel.guild.id].players[id].tictactoe);
+			return;
 		}
+
+		this.resetReactions();
 	});
 
 	collector.on('end', (collected, reason) => {
@@ -222,11 +205,11 @@ TicTacToeGame.prototype.boardEmbed = function () {
 		result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
 	
 	const embed = new RichEmbed()
+		.setTimestamp()
 		.setTitle('Tic Tac Toe')
-		.setAuthor('GamesBot')
 		.addField('Players', `${Object.keys(this.players).map(id => `${global.bot.users.get(id)} (${this.players[id].symbol})`).join(' vs ')}`)
 		.addField('Grid', result)
-		.setFooter('Type "cancel" to cancel your game.');
+		.setFooter('Type ".ttt help" to get help about this function.');
 	return embed;
 };
 
