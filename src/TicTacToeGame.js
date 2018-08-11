@@ -145,7 +145,7 @@ TicTacToeGame.prototype.startPlaying = async function () {
 	const collector = msg.createReactionCollector(r => {
 		if (this.status !== 'running') return;
 		if (this.currentPlayer.id === global.bot.user.id) return;
-		if (!this.reactionsReset(r.message)) return;
+		if (!this.areReactionsReset(r.message)) return;
 		const rowSelected = ['1⃣', '2⃣', '3⃣'].some(row => reactionFilter(r, row));
 		const colSelected = ['🇦', '🇧', '🇨'].some(col => reactionFilter(r, col));
 		return rowSelected && colSelected;

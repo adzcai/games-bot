@@ -2,7 +2,7 @@
 
 module.exports = Game;
 
-function Game(id, command, channel) {
+function Game(id, channel) {
 	this.id = id;
 	this.channel = channel;
 	this.players = {};

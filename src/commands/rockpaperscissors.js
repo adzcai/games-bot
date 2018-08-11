@@ -1,5 +1,5 @@
 module.exports = {
-	run: (message, args) => rockPaperScissors(message, args),
+	run: (message) => rockPaperScissors(message),
 	help: 'Plays rock paper scissors',
 	aliases: ['rps']
 };
