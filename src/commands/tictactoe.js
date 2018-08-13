@@ -6,16 +6,15 @@ const internal = require('./../internal.js');
 module.exports = {
 	usage: (prefix) => `${prefix}tictactoe [**-s**] [**-d** __difficulty__] [**-g** __playernum__] [-c]`,
 	desc: 'Plays Tic Tac Toe!',
-	// options: options,
 	aliases: ['ttt'],
 	run: playTicTacToe
 };
 
-const options = { // all of the actions are called on settings
+const options = {
 	singleplayer: {
 		aliases: ['s'],
 		usage: 'Starts a singleplayer game.',
-		action: () => this.difficulty = false
+		action: () => this.multiplayer = false
 	},
 	difficulty: {
 		aliases: ['d'],
@@ -49,6 +48,12 @@ const options = { // all of the actions are called on settings
 		}
 	}
 };
+
+Object.values(options).forEach(opt => {
+	console.log(opt)
+	if (opt.aliases)
+		opt.aliases.forEach(alias => Object.defineProperty(options, alias, { get: () => opt }));
+});
 
 async function playTicTacToe(message, args) {
 	let server = global.servers[message.guild.id];

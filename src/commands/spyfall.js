@@ -8,9 +8,15 @@ module.exports = {
 	run: (message, args) => playSpyfall(message, args),
 	usage: (prefix) => `${prefix}spyfall [**-l**] [-v __edition__]`,
 	desc: 'Play Spyfall with a group of friends!',
-	options: {
-		'**-v, --version**': 'Plays with the locations in Spyfall __edition__ (1, 2, or "both")',
-		'**-l, --leave**': 'If the user is in a game, leaves it'
+};
+
+const options = {
+	version: {
+		aliases: ['v'],
+		usage: 'Plays with the locations in Spyfall __edition__ (1, 2, or "both")'},
+	leave: {
+		aliases: ['l'],
+		usage: 'If the user is in a game, leaves it'
 	}
 };
 
@@ -40,12 +46,12 @@ async function playSpyfall(message, args) {
 		});
 	} else {
 		for (let i = 0; i < args.length; i++) {
-			/* eslint-disable indent, no-case-declarations, no-fallthrough */
 			switch (args[i]) {
-				// case '--cancel':
-				// case '-c':
-				// 	general.endGame(message);
-				// 	break;
+				case '--cancel':
+				case '-c':
+					internal.endGame(message);
+					return;
+					break;
 				case '--view':
 				case '-v':
 					let gameID = server.players[message.author.id].tictactoe;
@@ -54,7 +60,6 @@ async function playSpyfall(message, args) {
 					game.boardMessage = msg;
 					break;
 			}
-			/* eslint-enable indent, no-case-declarations, no-fallthrough */
 		}
 		message.channel.send('You are already in a game! Type .ttt -v to resend the grid.');
 	}

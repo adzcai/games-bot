@@ -11,7 +11,9 @@ function sendHelp (message, args) {
 	const commands = internal.getCommands();
 
 	if (args.length > 0) {
-		const help = new RichEmbed();
+		if (commands.includes(args[0].toLowerCase())) {
+			// TODO
+		}
 	} else {
 		const help = new RichEmbed()
 			.setTitle('Help')
@@ -25,7 +27,8 @@ function sendHelp (message, args) {
 			.setDescription('A list of commands this bot listens to.');
 
 		Object.values(commands).forEach(cmd => {
-			cmds.addField(`${cmd.usage ? cmd.usage(prefix) : 'No usage defined yet'}`, `${cmd.desc}`);
+			if (cmd.usage) cmds.addField(cmd.usage(prefix), cmd.desc);
+			else console.log(cmd);
 		});
 
 		message.channel.send({embed: help});

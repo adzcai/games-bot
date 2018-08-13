@@ -6,7 +6,8 @@ module.exports = {
 	endGame,
 	getCommands,
 	clone,
-	shuffle
+	shuffle,
+	askForPlayers
 };
 
 function endGame (message) {
@@ -54,4 +55,21 @@ function shuffle (list) {
 		arr[j] = x;
 	}
 	return arr;
+}
+
+function askForPlayers(message, invitationMessage, collectorOptions, callback, emoji = '🤝') {
+	let msg = await message.channel.send(invitationMessage);
+	await msg.react(emoji);
+
+	let playersEmbed = new RichEmbed().setTitle('Players').setDescription(message.member);
+	let playerIDs = [];
+	let playersMsg = await message.channel.send({embed: playersEmbed});
+
+	const collector = msg.createReactionCollector((r, user) => (r.emoji.name === emoji) && user.id !== global.bot.id, collectorOptions);
+	collector.on('collect', r => {
+		playerIDs = r.users.filter(userID => userID !== global.bot.user.id);
+		playersEmbed.setDescription(playerIDs.map(id => message.guild.members.get(id)).join('\n'));
+		playersMsg.edit({embed: playersEmbed});
+	});
+	collector.on('end', callback)
 }
