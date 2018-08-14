@@ -1,7 +1,7 @@
 'use strict';
 
 const Game = require('./Game.js');
-const internal = require('./internal.js');
+const internal = require('./../internal.js');
 
 function CoupGame (id, channel) {
 	Game.call(this, id, channel);

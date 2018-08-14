@@ -1,6 +1,6 @@
 'use strict';
 
-const TicTacToeGame = require('./../TicTacToeGame.js');
+const TicTacToeGame = require('./../gameclasses/TicTacToeGame.js');
 const internal = require('./../internal.js');
 
 module.exports = {
@@ -21,13 +21,9 @@ const options = {
 		usage: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
 		action: (args, ind) => {
 			let diff = args[ind+1];
-			if ((/^e(?:asy)|1$/i).test(diff))
-				diff = 1;
-			else if ((/^m(?:edium)|2$/i).test(diff))
-				diff = 2;
-			else if ((/^h(?:ard)|3$/i).test(diff))
-				diff = 3;
-			this.difficulty = difficulty;
+			[/^e(?:asy)|1$/i, /^m(?:edium)|2$/i, /^h(?:ard)|3$/i].forEach((re, i) => {
+				if (re.test(diff)) this.difficulty = i+1;
+			})
 		}
 	},
 	go: {
@@ -43,17 +39,29 @@ const options = {
 	},
 	cancel: {
 		aliases: ['c'],
+		afterInit: true,
 		usage: 'If the user is in a game, cancels it',
-		action: () => {
+		action: (message) => {
+			internal.endGame(message);
+		}
+	},
+	view: {
+		aliases: ['v'],
+		afterInit: true,
+		usage: 'Resends the game board',
+		action: async (message) => {
+			let server = global.servers[message.guild.id];
+			let gameID = server.players[message.author.id].tictactoe;
+			let game = server.games[gameID];
+
+			const msg = await game.channel.send({embed: game.boardEmbed()});
+			game.boardMessage = msg;
+			game.resetReactions();
 		}
 	}
 };
 
-Object.values(options).forEach(opt => {
-	console.log(opt)
-	if (opt.aliases)
-		opt.aliases.forEach(alias => Object.defineProperty(options, alias, { get: () => opt }));
-});
+internal.defineAliases(options);
 
 async function playTicTacToe(message, args) {
 	let server = global.servers[message.guild.id];
@@ -72,36 +80,28 @@ async function playTicTacToe(message, args) {
 				await msg.react('👍');
 				const collected = await msg.awaitReactions(r => r.emoji.name === '👍' && r.users.get(challenged.id), {maxUsers: 1, time: 60 * 1000});
 				if (collected.size < 1)
-					return message.channel.send('Timed out. Type "cancel" to cancel this game and then type .ttt to start a new one.').catch(console.error);
+					throw new Error('Timed out. Type "cancel" to cancel this game and then type .ttt to start a new one.').catch(console.error);
 				settings.players.push(challenged.id);
 				settings.multiplayer = true;
 			}
 		} else if (args.length > 0) { // ['d', '1', etc.]
 			for (let i = 0; i < args.length; i++)
 				if (Object.keys(options).includes(args[i]))
-					options[args[i]].action.call(settings, args, i);
+					if (!options[args[i].afterInit])
+						options[args[i]].action.call(settings, args, i);
 		}
 
 		server.games[id] = new TicTacToeGame(id, message.channel);
 		await server.games[id].start(settings);
 	} else {
 		for (let i = 0; i < args.length; i++) {
-			/* eslint-disable indent, no-case-declarations, no-fallthrough */
-			switch (args[i]) {
-				case '--cancel':
-				case '-c':
-					internal.endGame(message);
-					break;
-				case '--view':
-				case '-v':
-					let gameID = server.players[message.author.id].tictactoe;
-					let game = server.games[gameID];
-					const msg = await message.guild.channels.get(game.channel).send({embed: game.boardEmbed()});
-					game.boardMessage = msg;
-					break;
+			if (options.hasOwnProperty(args[i])) {
+				if (options[args[i]].afterInit) {
+					options[args[i]].action(message);
+					return;
+				}
 			}
-			/* eslint-enable indent, no-case-declarations, no-fallthrough */
 		}
-		message.channel.send('You are already in a game! Type .ttt -v to resend the grid.');
+		message.channel.send('You are already in a game! Type .ttt v to resend the grid.').catch(console.error);
 	}
 }	

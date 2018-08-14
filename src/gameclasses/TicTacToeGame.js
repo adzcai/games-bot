@@ -42,7 +42,7 @@ TicTacToeGame.prototype.promptMultiplayer = async function () {
 	const messageCollector = this.channel.createMessageCollector(m => (m.mentions.members.size > 0) && (m.author.id === this.currentPlayer.id), {maxMatches: 1, time: 60 * 1000});
 	messageCollector.on('end', async (collected, reason) => {
 		if (reason === 'response received') return;
-		if (collected.size < 1) throw this.sendCollectorEndedMessage(reason);
+		if (collected.size < 1) throw new Error(this.sendCollectorEndedMessage(reason).content);
 
 		let challenged = collected.first().mentions.members.first();
 		if ((challenged.id === global.bot.user.id) || (challenged.id === this.currentPlayer.id)) {
@@ -51,15 +51,16 @@ TicTacToeGame.prototype.promptMultiplayer = async function () {
 		} else {
 			const msg = await this.channel.send(`${challenged}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`);
 			await msg.react('👍');
-			const collected = msg.awaitReactions(r => r.emoji.name === '👍' && r.users.get(challenged.id), {maxUsers: 1, time: 60 * 1000});
-			if (collected.size < 1) throw this.sendCollectorEndedMessage(reason);
+			let filter = (r, user) => (r.emoji.name === '👍') && (user.id === challenged.id);
+			const collected = msg.awaitReactions(filter, {maxUsers: 1, time: 60 * 1000});
+			if (collected.size < 1) throw new Error(this.sendCollectorEndedMessage(reason).content);
 			p2 = challenged.id;
 		}
 	});
 
 	const collectedReactions = await msg.awaitReactions((r, user) => (r.emoji.name === '👁' || r.emoji.name === '🇳') && user.id === this.currentPlayer.id, {maxUsers: 1, time: 60 * 1000});
 	messageCollector.stop('response received');
-	if (collectedReactions.size < 1) throw this.sendCollectorEndedMessage();
+	if (collectedReactions.size < 1) throw new Error(this.sendCollectorEndedMessage().content);
 
 	const emoji = collectedReactions.first().emoji.name;
 	if (emoji === '👁') {
@@ -156,10 +157,10 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		let col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
 		let ind = row * 3 + col;
-		if (this.currentState.board.contents[ind] !== ' ') return msg.channel.send('That is not a valid move!');
+		if (this.currentState.board.contents[ind] !== ' ') throw new Error('That is not a valid move!');
 		let next = new BoardGameState(this.currentState);
 		next.board.contents[ind] = this.currentState.currentPlayerSymbol;
-		next.currentPlayerSymbol = next.currentPlayerSymbol === 'X' ? 'O' : 'X';
+		next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
 		this.advanceTo(next);
 
 		if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol))
@@ -190,8 +191,20 @@ TicTacToeGame.prototype.switchPlayer = function () {
 };
 
 TicTacToeGame.prototype.boardEmbed = function () {
-	let numbers = ['zero', 'one', 'two', 'three'];
 	let result = '';
+	const embed = new RichEmbed()
+		.setTimestamp()
+		.setTitle('Tic Tac Toe')
+		.addField('Players', `${Object.keys(this.players).map(id => `${global.bot.users.get(id)} (${this.players[id].symbol})`).join(' vs ')}`)
+		.addField('Grid', this.grid())
+		.setFooter('Type ".ttt help" to get help about this function.');
+	return embed;
+};
+
+TicTacToeGame.prototype.grid = function () {
+	let result = '';
+	let numbers = ['zero', 'one', 'two', 'three'];
+	
 	for (let row = 0; row < 3; row++) {
 		result += `:${numbers[3 - row]}:`;
 		for (let col = 0; col < 3; col++)
@@ -203,15 +216,8 @@ TicTacToeGame.prototype.boardEmbed = function () {
 	let a = 'a'.charCodeAt(0);
 	for (let col = 0; col < 3; col++)
 		result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
-	
-	const embed = new RichEmbed()
-		.setTimestamp()
-		.setTitle('Tic Tac Toe')
-		.addField('Players', `${Object.keys(this.players).map(id => `${global.bot.users.get(id)} (${this.players[id].symbol})`).join(' vs ')}`)
-		.addField('Grid', result)
-		.setFooter('Type ".ttt help" to get help about this function.');
-	return embed;
-};
+	return result;
+}
 
 TicTacToeGame.prototype.advanceTo = function (state) {
 	this.currentState = state;
@@ -234,7 +240,7 @@ TicTacToeGame.prototype.minimaxValue = function (state) {
 
 	let stateScore = (state.currentPlayerSymbol === this.humanPlayerSymbol) ? -1000 : 1000;
 	let availablePositions = Board.emptyCells(state.board);
-	let availableNextStates = availablePositions.map(pos => (new AIAction(pos)).applyTo(state, (this.humanPlayerSymbol === 'X' ? 'O' : 'X')));
+	let availableNextStates = availablePositions.map(pos => (new AIAction(pos)).applyTo(state, switchSymbol(this.humanPlayerSymbol)));
 
 	availableNextStates.forEach(nextState => {
 		let nextScore = this.minimaxValue(nextState);
@@ -262,7 +268,7 @@ TicTacToeGame.prototype.aiMove = function () {
 	} else {
 		let availableActions = available.map(pos => {
 			let availableAction = new AIAction(pos);
-			let nextState = availableAction.applyTo(this.currentState, (this.humanPlayerSymbol === 'X') ? 'O' : 'X');
+			let nextState = availableAction.applyTo(this.currentState, switchSymbol(this.humanPlayerSymbol));
 			availableAction.minimaxVal = this.minimaxValue(nextState);
 			return availableAction;
 		});
@@ -276,15 +282,18 @@ TicTacToeGame.prototype.aiMove = function () {
 			availableActions[0]);
 	}
 
-	let next = action.applyTo(this.currentState, (this.humanPlayerSymbol === 'X') ? 'O' : 'X');
+	let next = action.applyTo(this.currentState, switchSymbol(this.humanPlayerSymbol));
 	this.advanceTo(next);
 };
 
 TicTacToeGame.prototype.score = function (state) {
-	if (state.result === `${this.humanPlayerSymbol}-won`) {
-		return 10; // - state.aiMovesCount
-	} else if (state.result === `${(this.humanPlayerSymbol === 'X') ? 'O' : 'X'}-won`) {
-		return -10; // + state.aiMovesCount
-	}
+	if (state.result === `${this.humanPlayerSymbol}-won`)
+		return 10 - state.aiMovesCount;
+	if (state.result === `${switchSymbol(this.humanPlayerSymbol)}-won`)
+		return -10 + state.aiMovesCount;
 	return 0;
 };
+
+function switchSymbol(sym) {
+	return (sym === 'X') ? 'O' : 'X'
+}
