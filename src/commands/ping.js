@@ -5,5 +5,5 @@ module.exports = {
 };
 
 function ping (message) {
-	message.channel.send('Pong! ' + (new Date().getTime() - message.createdTimestamp) + ' ms').catch(console.error);
+	message.channel.send(`Pong! ${global.bot.ping} ms`).catch(console.error);
 }

@@ -2,7 +2,7 @@
 
 const Discord = require('discord.js');
 const auth = require('./res/auth.json');
-const commands = require('./src/internal.js').getCommands();
+const commands = (require('./src/internal/getCommands.js'))();
 
 const bot = new Discord.Client();
 global.bot = bot;

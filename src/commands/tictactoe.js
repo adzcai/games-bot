@@ -1,7 +1,8 @@
 'use strict';
 
-const TicTacToeGame = require('./../gameclasses/TicTacToeGame.js');
-const internal = require('./../internal.js');
+const TicTacToeGame = require('../gameclasses/TicTacToeGame.js');
+const endGame = require('../internal/endGame.js');
+const defineAliases = require('../internal/defineAliases.js');
 
 module.exports = {
 	usage: (prefix) => `${prefix}tictactoe [**-s**] [**-d** __difficulty__] [**-g** __playernum__] [-c]`,
@@ -19,17 +20,17 @@ const options = {
 	difficulty: {
 		aliases: ['d'],
 		usage: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
-		action: (args, ind) => {
+		action: (ind, args) => {
 			let diff = args[ind+1];
 			[/^e(?:asy)|1$/i, /^m(?:edium)|2$/i, /^h(?:ard)|3$/i].forEach((re, i) => {
 				if (re.test(diff)) this.difficulty = i+1;
-			})
+			});
 		}
 	},
 	go: {
 		aliases: ['g'],
 		usage: 'Begins the game with you as the __playernum__th player.',
-		action: (args, ind) => {
+		action: (ind, args) => {
 			let goFirst = args[ind+1];
 			if ((/^t(?:rue)|y(?:es)|1$/).test(goFirst))
 				this.p1GoesFirst = true;
@@ -42,7 +43,7 @@ const options = {
 		afterInit: true,
 		usage: 'If the user is in a game, cancels it',
 		action: (message) => {
-			internal.endGame(message);
+			endGame(message);
 		}
 	},
 	view: {
@@ -61,7 +62,7 @@ const options = {
 	}
 };
 
-internal.defineAliases(options);
+defineAliases(options);
 
 async function playTicTacToe(message, args) {
 	let server = global.servers[message.guild.id];
@@ -84,12 +85,11 @@ async function playTicTacToe(message, args) {
 				settings.players.push(challenged.id);
 				settings.multiplayer = true;
 			}
-		} else if (args.length > 0) { // ['d', '1', etc.]
+		} else if (args.length > 0)
 			for (let i = 0; i < args.length; i++)
 				if (Object.keys(options).includes(args[i]))
 					if (!options[args[i].afterInit])
-						options[args[i]].action.call(settings, args, i);
-		}
+						options[args[i]].action.call(settings, i, args);
 
 		server.games[id] = new TicTacToeGame(id, message.channel);
 		await server.games[id].start(settings);

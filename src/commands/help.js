@@ -1,5 +1,5 @@
 const RichEmbed = require('discord.js').RichEmbed;
-const internal = require('./../internal.js');
+const commands = (require('./../internal/getCommands.js'))();
 module.exports = {
 	run: (message, args) => sendHelp(message, args),
 	usage: (prefix) => `${prefix}help`,
@@ -8,7 +8,6 @@ module.exports = {
 
 function sendHelp (message, args) {
 	const prefix = require('./../../res/auth.json').prefix;
-	const commands = internal.getCommands();
 
 	if (args.length > 0) {
 		if (commands.includes(args[0].toLowerCase())) {

@@ -191,7 +191,6 @@ TicTacToeGame.prototype.switchPlayer = function () {
 };
 
 TicTacToeGame.prototype.boardEmbed = function () {
-	let result = '';
 	const embed = new RichEmbed()
 		.setTimestamp()
 		.setTitle('Tic Tac Toe')
@@ -217,7 +216,7 @@ TicTacToeGame.prototype.grid = function () {
 	for (let col = 0; col < 3; col++)
 		result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
 	return result;
-}
+};
 
 TicTacToeGame.prototype.advanceTo = function (state) {
 	this.currentState = state;
@@ -295,5 +294,5 @@ TicTacToeGame.prototype.score = function (state) {
 };
 
 function switchSymbol(sym) {
-	return (sym === 'X') ? 'O' : 'X'
+	return (sym === 'X') ? 'O' : 'X';
 }

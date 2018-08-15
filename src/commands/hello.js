@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
 	usage: (prefix) => `${prefix}sayHi [**-l** __language__]`,
 	desc: 'Says hello!',

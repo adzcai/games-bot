@@ -9,11 +9,10 @@ const locations = [
 	['Race Track', 'Art Museum', 'Vineyard', 'Baseball Stadium', 'Library', 'Cat Show', 'Retirement Home', 'Jail', 'Construction Site', 'The United Nations', 'Candy Factory', 'Subway', 'Coal Mine', 'Cemetery', 'Rock Concert', 'Jazz Club', 'Wedding', 'Gas Station', 'Harbor Docks', 'Sightseeing Bus']
 ];
 
-function SpyfallGame(id, channel, players, version = '1') {
+function SpyfallGame(id, channel, version = '1') {
 	this.id = id;
 	this.channel = channel;
-	this.players = players;
-    this.playerMessages = {};
+	this.playerMessages = {};
     
 	if (version === '1')
 		this.locations = locations[0];
@@ -24,9 +23,11 @@ function SpyfallGame(id, channel, players, version = '1') {
 	else
 		throw new Error('That is not a valid version');
 }
-SpyfallGame.prototype = Object.create(Gamepad.prototype);
+SpyfallGame.prototype = Object.create(Game.prototype);
+SpyfallGame.constructor = SpyfallGame;
 
-SpyfallGame.prototype.start = async function () {
+SpyfallGame.prototype.start = async function (players) {
+	this.players = players;
 	this.spy = this.players[Math.floor(Math.random() * this.players.length)];
 	this.players.map(id => this.channel.guild.members.get(id).user).forEach(async user => {
 		let embed = new RichEmbed()
