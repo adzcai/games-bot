@@ -5,6 +5,7 @@ const Game = require('./Game.js');
 const BoardGameState = require('./BoardGameState.js');
 const AIAction = require('./AIAction.js');
 const Board = require('./Board.js');
+const endGame = require('../internal/endGame.js');
 
 module.exports = TicTacToeGame;
 
@@ -19,7 +20,8 @@ TicTacToeGame.prototype.constructor = TicTacToeGame;
 TicTacToeGame.prototype.start = async function (settings) {
 	if (settings.players) settings.players.forEach(id => {
 		const symbol = ['X', 'O'][Object.keys(this.players).length];
-		this.addPlayer(id, symbol);
+		this.addPlayer(id);
+		this.players[id].symbol = symbol;
 		this.humanPlayerSymbol = symbol;
 	});
 	this.currentPlayer = Object.assign({}, this.players[Object.keys(this.players)[0]]);
@@ -84,10 +86,11 @@ TicTacToeGame.prototype.setMultiPlayer = async function (multiplayer) {
 	const p2ID = multiplayer ? multiplayer : global.bot.user.id;
 	if (!this.channel.guild.members.get(p2ID)) throw 'That user was not found';
 	
-	this.addPlayer(p2ID, 'O');
+	this.addPlayer(p2ID);
+	this.players[p2ID] = 'O';
 	global.servers[this.channel.guild.id].players[p2ID].tictactoe = this.id;
 
-	this.channel.send(`Players: ${Object.keys(this.players).map(id => global.bot.users.get(id)).join(' and ')}`);
+	this.channel.send(`Players: ${Object.values(this.players).map(p => p.user).join(' and ')}`);
 };
 
 TicTacToeGame.prototype.promptDifficulty = async function () {
@@ -131,19 +134,22 @@ TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
 		this.currentPlayer.symbol = 'X';
 	}
 	this.currentState.currentPlayerSymbol = this.currentPlayer.symbol;
-	this.channel.send(`${global.bot.users.get(this.currentPlayer.id)}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
+	this.channel.send(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
 };
 
 TicTacToeGame.prototype.startPlaying = async function () {
 	this.status = 'running';
-	const msg = await this.channel.send({embed: this.boardEmbed()});
-	this.boardMessage = msg;
+	this.boardMessage = await this.channel.send({embed: this.boardEmbed()});
 
 	if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol)) this.aiMove();
 	await this.resetReactions();
 
+	this.resetCollector();
+};
+
+TicTacToeGame.prototype.resetCollector = function () {
 	let reactionFilter = (r, emoji) => r.message.reactions.get(emoji).users.has(this.currentPlayer.id);
-	const collector = msg.createReactionCollector(r => {
+	this.collector = this.boardMessage.createReactionCollector(r => {
 		if (this.status !== 'running') return;
 		if (this.currentPlayer.id === global.bot.user.id) return;
 		if (!this.areReactionsReset(r.message)) return;
@@ -152,12 +158,12 @@ TicTacToeGame.prototype.startPlaying = async function () {
 		return rowSelected && colSelected;
 	}, {time: 5 * 60 * 1000});
 
-	collector.on('collect', (r, colr) => {
+	this.collector.on('collect', r => {
 		let row = this.reactions[['1⃣', '2⃣', '3⃣'].filter(row => reactionFilter(r, row))[0]];
 		let col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
 		let ind = row * 3 + col;
-		if (this.currentState.board.contents[ind] !== ' ') throw new Error('That is not a valid move!');
+		if (this.currentState.board.contents[ind] !== ' ') return this.channel.send('That is not a valid move!').catch(console.error);
 		let next = new BoardGameState(this.currentState);
 		next.board.contents[ind] = this.currentState.currentPlayerSymbol;
 		next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
@@ -165,20 +171,11 @@ TicTacToeGame.prototype.startPlaying = async function () {
 
 		if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol))
 			this.aiMove();
-		
-		if (this.status === 'ended') {
-			let player = global.bot.users.get(this.currentPlayer.id);
-			this.channel.send(`${player} won! GG`).catch(console.error);
-			colr.stop('game over');
-			this.boardMessage.clearReactions();
-			Object.keys(this.players).forEach(id => delete global.servers[this.channel.guild.id].players[id].tictactoe);
-			return;
-		}
 
 		this.resetReactions();
 	});
 
-	collector.on('end', (collected, reason) => {
+	this.collector.on('end', (collected, reason) => {
 		if (reason === 'game over') return;
 		this.sendCollectorEndedMessage(reason);
 	});
@@ -194,7 +191,7 @@ TicTacToeGame.prototype.boardEmbed = function () {
 	const embed = new RichEmbed()
 		.setTimestamp()
 		.setTitle('Tic Tac Toe')
-		.addField('Players', `${Object.keys(this.players).map(id => `${global.bot.users.get(id)} (${this.players[id].symbol})`).join(' vs ')}`)
+		.addField('Players', `${Object.values(this.players).map(p => `${p.user} (${p.symbol})`).join(' vs ')}`)
 		.addField('Grid', this.grid())
 		.setFooter('Type ".ttt help" to get help about this function.');
 	return embed;
@@ -226,7 +223,10 @@ TicTacToeGame.prototype.advanceTo = function (state) {
 	this.switchPlayer();
 	if (/(?:X|O)-won|draw/i.test(this.currentState.result)) {
 		this.status = 'ended';
-		return;
+		this.channel.send(`${this.currentPlayer} won! GG`).catch(console.error);
+		this.collector.stop('game over');
+		this.boardMessage.clearReactions();
+		endGame(this.channel, this.id, 'tictactoe');
 	}
 };
 

@@ -6,15 +6,14 @@ module.exports = async (message, invitationMessage, filter, collectorOptions, on
 		await msg.react(reactions[i]);
 
 	let playersEmbed = new RichEmbed().setTitle('Players').setDescription(message.member);
-	let playerIDs = [];
 	let playersMsg = await message.channel.send({embed: playersEmbed});
 
 	const collector = msg.createReactionCollector(filter, collectorOptions);
 	collector.on('collect', (r, c) => {
-		playerIDs = r.users.filter(userID => userID !== global.bot.user.id);
+		let playerIDs = r.users.keyArray().filter(id => !global.bot.users.get(id).bot);
 		playersEmbed.setDescription(playerIDs.map(id => message.guild.members.get(id)).join('\n'));
 		playersMsg.edit({embed: playersEmbed});
-		onCollect(r, c);
+		onCollect(r, c).catch(console.error);
 	});
-	collector.on('end', onEnd);
+	collector.on('end', (collected, reason) => onEnd(collected, reason).catch(console.error));
 };

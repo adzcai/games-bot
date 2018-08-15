@@ -43,7 +43,8 @@ const options = {
 		afterInit: true,
 		usage: 'If the user is in a game, cancels it',
 		action: (message) => {
-			endGame(message);
+			let gameID = global.servers[message.guild.id].players[message.author.id].tictactoe;
+			endGame(message.channel, gameID, 'tictactoe');
 		}
 	},
 	view: {

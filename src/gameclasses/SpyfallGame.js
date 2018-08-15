@@ -1,5 +1,6 @@
 'use strict';
 
+const RichEmbed = require('discord.js').RichEmbed;
 const Game = require('./Game.js');
 
 module.exports = SpyfallGame;

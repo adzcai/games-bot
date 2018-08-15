@@ -1,5 +1,5 @@
 module.exports = {
-	run: (message) => rockPaperScissors(message),
+	run: rockPaperScissors,
 	help: 'Plays rock paper scissors',
 	aliases: ['rps']
 };
@@ -19,13 +19,12 @@ const results = [
 	[1, -1, 0] // Scissors
 ];
 
-async function rockPaperScissors(message, args) {
+async function rockPaperScissors(message) {
 	if (message.mentions.members.size < 1) throw new Error('Please ping someone to challenge them to tic tac toe!');
 	message.channel.send('Wait for a DM to tell me your choice');
 	let players = [message.member, message.mentions.members.first()];
 	let choices = [null, null];
 
-	console.log('before loop');
 	await players.forEach(async (player, ind) => {
 		if (player.id === global.bot.id) {
 			choices[ind] = Object.values(reactions)[Math.floor(Math.random() * 3)];
@@ -38,7 +37,6 @@ async function rockPaperScissors(message, args) {
 		player.user.send(`You chose ${reactions[collected.first().emoji.name]}.`);
 		choices[ind] = reactions[collected.first().emoji.name];
 	});
-	console.log('after loop');
 
 	console.log(choices);
 	let result = '';

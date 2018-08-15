@@ -9,8 +9,12 @@ function Game(id, channel) {
 	this.status = 'beginning';
 }
 
-Game.prototype.addPlayer = function (id, symbol) {
-	this.players[id] = {id: id, symbol: symbol};
+Game.prototype.addPlayer = function (id) {
+	this.players[id] = {
+		id: id,
+		game: this,
+		user: global.bot.users.get(id)
+	};
 };
 
 Game.prototype.sendCollectorEndedMessage = function (reason) {

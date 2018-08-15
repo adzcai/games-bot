@@ -1,5 +1,6 @@
 'use strict';
 
+const SpyfallGame = require('../gameclasses/SpyfallGame.js');
 const askForPlayers = require('../internal/askForPlayers.js');
 
 module.exports = {
@@ -38,13 +39,11 @@ async function playSpyfall(message, args) {
 		const onCollect = async (r, col) => {
 			if (r.emoji.name === '🕵') {
 				let id = Object.keys(server.games).length;
-				server.games[id] = new SpyfallGame(id, message.channel, version);
-				await server.games[id].start(players);
+				server.games[id] = new SpyfallGame(id, message.channel, options.version(args)); // TODO
+				await server.games[id].start(r.users.map(user => user.id)); // To check
 				col.stop('game starting');
 				return;
 			}
-
-			Object.assign(players, Object.keys(r.users).filter(id => !global.bot.users.get(id).bot));
 		};
 
 		const onEnd = (collected, reason) => {
