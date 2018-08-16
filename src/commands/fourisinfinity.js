@@ -13,10 +13,10 @@ module.exports = {
 
 function playFourIsInfinity(message, num) {
 	if (!((parseInt(num) >= 0) && (parseInt(num) <= 999)))
-		throw new Error('That is not a valid number. Please enter a number from 0 to 999.').catch(console.error);
+		return message.channel.send('That is not a valid number. Please enter a number from 0 to 999.').catch(console.error);
     
 	if (num === 4) {
-		return message.channel.send('And 4 is infinity!');
+		return message.channel.send('And 4 is infinity!').catch(console.error);
 	} else {
 		let digits = `${num}`.split('').map(d => parseInt(d));
         

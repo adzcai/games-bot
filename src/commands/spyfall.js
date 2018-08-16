@@ -23,15 +23,19 @@ function getVersion (args) {
 
 const options = {
 	leave: {
-
+		run: (message) => {
+			let server = global.servers[message.guild.id];
+			let game = server.games[server.players[message.author.id]];
+			delete game.players[message.author.id];
+		}
 	}
-}
+};
 
 async function playSpyfall(message, args) {
 	let server = global.servers[message.guild.id];
     
 	if (typeof server.players[message.author.id].spyfall === 'undefined') {
-		let msg = await message.channel.send(`Let's play Spyfall! Tap 🤝 to join the game.Tap 🕵 whenever you're ready to start the game!`);
+		let msg = await message.channel.send('Let\'s play Spyfall! Tap 🤝 to join the game.Tap 🕵 whenever you\'re ready to start the game!');
 		await msg.react('🤝');
 		await msg.react('🕵');
 		let playersEmbed = new RichEmbed().setTitle('Players');

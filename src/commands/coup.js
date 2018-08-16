@@ -6,9 +6,9 @@ const defineAliases = require('../internal/defineAliases.js');
 const askForPlayers = require('../internal/askForPlayers.js');
 
 module.exports = {
-	run: (message, args) => playCoup(message, args),
-	help: 'Plays the board game Coup',
-	usage: (prefix) => `${prefix}coup`
+	desc: 'Plays the board game Coup',
+	usage: (prefix) => `${prefix}coup`,
+	run: playCoup
 };
 
 const options = {

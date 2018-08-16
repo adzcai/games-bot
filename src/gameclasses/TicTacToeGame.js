@@ -10,7 +10,7 @@ const endGame = require('../internal/endGame.js');
 module.exports = TicTacToeGame;
 
 function TicTacToeGame (id, channel) {
-	Game.call(this, id, channel);
+	Game.call(this, id, channel, 'tictactoe');
 	this.reactions = {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0};
 	this.currentState = new BoardGameState(3, 3, id);
 }
@@ -20,13 +20,10 @@ TicTacToeGame.prototype.constructor = TicTacToeGame;
 TicTacToeGame.prototype.start = async function (settings) {
 	if (settings.players) settings.players.forEach(id => {
 		const symbol = ['X', 'O'][Object.keys(this.players).length];
-		this.addPlayer(id);
-		this.players[id].symbol = symbol;
+		this.addPlayer(id, {symbol: symbol});
 		this.humanPlayerSymbol = symbol;
 	});
 	this.currentPlayer = Object.assign({}, this.players[Object.keys(this.players)[0]]);
-
-	global.servers[this.channel.guild.id].players[this.currentPlayer.id].tictactoe = this.id;
 	
 	const multiplayer = await this.setMultiPlayer(settings.multiplayer);
 	if (!multiplayer) await this.setDifficulty(settings.difficulty);
@@ -44,14 +41,14 @@ TicTacToeGame.prototype.promptMultiplayer = async function () {
 	const messageCollector = this.channel.createMessageCollector(m => (m.mentions.members.size > 0) && (m.author.id === this.currentPlayer.id), {maxMatches: 1, time: 60 * 1000});
 	messageCollector.on('end', async (collected, reason) => {
 		if (reason === 'response received') return;
-		if (collected.size < 1) throw new Error(this.sendCollectorEndedMessage(reason).content);
+		if (collected.size < 1) return this.sendCollectorEndedMessage(reason);
 
 		let challenged = collected.first().mentions.members.first();
-		if ((challenged.id === global.bot.user.id) || (challenged.id === this.currentPlayer.id)) {
+		if (challenged.bot || (challenged.id === this.currentPlayer.id)) {
 			await this.channel.send('Yeah, nice try. I\'ll play with you.').catch(console.error);
 			p2 = false;
 		} else {
-			const msg = await this.channel.send(`${challenged}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`);
+			const msg = await this.channel.send(`${challenged}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`).catch(console.error);
 			await msg.react('👍');
 			let filter = (r, user) => (r.emoji.name === '👍') && (user.id === challenged.id);
 			const collected = msg.awaitReactions(filter, {maxUsers: 1, time: 60 * 1000});
@@ -60,16 +57,17 @@ TicTacToeGame.prototype.promptMultiplayer = async function () {
 		}
 	});
 
-	const collectedReactions = await msg.awaitReactions((r, user) => (r.emoji.name === '👁' || r.emoji.name === '🇳') && user.id === this.currentPlayer.id, {maxUsers: 1, time: 60 * 1000});
+	let filter = (r, user) => ['👁', '🇳'].includes(r.emoji.name) && user.id === this.currentPlayer.id;
+	const collectedReactions = await msg.awaitReactions(filter, {maxUsers: 1, time: 60 * 1000});
 	messageCollector.stop('response received');
-	if (collectedReactions.size < 1) throw new Error(this.sendCollectorEndedMessage().content);
+	if (collectedReactions.size < 1) return this.sendCollectorEndedMessage('nobody wanted to join');
 
 	const emoji = collectedReactions.first().emoji.name;
 	if (emoji === '👁') {
-		const msg = await this.channel.send('Alright, whoever wants to play Tic Tac Toe with this lonely fellow, Tap 🤝 to accept.');
+		const msg = await this.channel.send('Alright, whoever wants to play Tic Tac Toe with this lonely fellow, Tap 🤝 to accept.').catch(console.error);
 		await msg.react('🤝');
 		const joiner = await msg.awaitReactions((r, user) => (r.emoji.name === '🤝') && ![global.bot.user.id, this.currentPlayer.id].includes(user.id), {maxUsers: 1, time: 60 * 1000});
-		if (joiner.size < 1) throw this.sendCollectorEndedMessage();
+		if (joiner.size < 1) return this.sendCollectorEndedMessage('nobody wanted to accept');
 		p2 = joiner.first().users.first().id;
 	} else if (emoji === '🇳') {
 		p2 = false;
@@ -90,27 +88,21 @@ TicTacToeGame.prototype.setMultiPlayer = async function (multiplayer) {
 	this.players[p2ID] = 'O';
 	global.servers[this.channel.guild.id].players[p2ID].tictactoe = this.id;
 
-	this.channel.send(`Players: ${Object.values(this.players).map(p => p.user).join(' and ')}`);
+	this.channel.send(`Players: ${Object.values(this.players).map(p => p.user).join(' and ')}`).catch(console.error);
 };
 
 TicTacToeGame.prototype.promptDifficulty = async function () {
 	const difficulties = {'🇪': 1, '🇲': 2, '🇭': 3};
 	const msg = await this.channel.send('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?');
-	await msg.react('🇪');
-	await msg.react('🇲');
-	await msg.react('🇭');
-	const collected = await msg.awaitReactions((r, user) => (r.emoji.name === '🇪' || r.emoji.name === '🇲' || r.emoji.name === '🇭') && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
-	if (collected.size < 1) throw this.sendCollectorEndedMessage();
+	for (let r of ['🇪', '🇲', '🇭']) await msg.react(r);
+	const collected = await msg.awaitReactions((r, user) => ['🇪', '🇲', '🇭'].includes(r.emoji.name) && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
+	if (collected.size < 1) return this.sendCollectorEndedMessage();
 	return difficulties[collected.first().emoji.name];
 };
 
 TicTacToeGame.prototype.setDifficulty = async function (difficulty) {
-	if (this.multiplayer) return 'You can only set the difficulty in a singleplayer game';
-
 	if (typeof difficulty === 'undefined')
 		difficulty = await this.promptDifficulty();
-	
-	if (![1, 2, 3].includes(difficulty)) throw 'That is not a valid difficulty setting.';
 
 	this.difficulty = difficulty;
 	this.channel.send(`On difficulty ${this.difficulty}.`).catch(console.error);
@@ -120,8 +112,8 @@ TicTacToeGame.prototype.promptP1GoesFirst = async function () {
 	const msg = await this.channel.send('Do you want to go first or second?');
 	await msg.react('1⃣');
 	await msg.react('2⃣');
-	let collected = await msg.awaitReactions((r, user) => (r.emoji.name === '1⃣' || r.emoji.name === '2⃣') && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
-	if (collected.size < 1) throw this.sendCollectorEndedMessage();
+	let collected = await msg.awaitReactions((r, user) => ['1⃣', '2⃣'].includes(r.emoji.name) && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
+	if (collected.size < 1) return this.sendCollectorEndedMessage();
 	return collected.has('1⃣');
 };
 
@@ -193,7 +185,7 @@ TicTacToeGame.prototype.boardEmbed = function () {
 		.setTitle('Tic Tac Toe')
 		.addField('Players', `${Object.values(this.players).map(p => `${p.user} (${p.symbol})`).join(' vs ')}`)
 		.addField('Grid', this.grid())
-		.setFooter('Type ".ttt help" to get help about this function.');
+		.setFooter(`Type ".help ttt" to get help about this function. Game ID: ${this.id}`);
 	return embed;
 };
 

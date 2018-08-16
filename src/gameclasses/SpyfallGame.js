@@ -29,11 +29,8 @@ SpyfallGame.constructor = SpyfallGame;
 SpyfallGame.prototype.start = async function (pIDs) {
 	this.status = 'running';
 	this.spyID = pIDs[Math.floor(Math.random() * pIDs.length)];
-	for (let id of pIDs) {
-		this.addPlayer(id);
-		this.players[id].isSpy = id === this.spyID;
-		this.players[id].scratched = [];
-	}
+	for (let id of pIDs)
+		this.addPlayer(id, {isSpy: id === this.spyID, scratched: []});
 
 	Object.values(this.players).forEach(async player => {
 		player.message = await player.user.send({embed: this.locationEmbed(player)});
@@ -55,14 +52,26 @@ SpyfallGame.prototype.start = async function (pIDs) {
 		if (remaining <= 0) return this.boardMessage.edit('Time\'s up!');
 		let minutes = Math.floor(remaining / 1000 / 60);
 		let seconds = Math.floor((remaining / 1000) % 60);
-		this.boardMessage.edit(`Time remaining: ${minutes}:${seconds}`);
-	}, 1000);
+		let embed = new RichEmbed()
+			.setTitle('Spyfall')
+			.setDescription(`Time remaining: ${minutes}:${seconds}`)
+			.setFooter(`Type .help spyfall to get help about the game. Game ID: ${this.id}`)
+			.setTimestamp();
+		this.boardMessage.edit({embed: embed});
+	}, 5000);
 };
 
 SpyfallGame.prototype.locationEmbed = function (player) {
 	let embed = new RichEmbed()
-	.setTitle(`You are ${player.isSpy ? '' : '**not**'} the spy!`)
-	.addField('Location Reference', this.locations.map((loc, ind) => `${player.scratched.includes(ind) ? '~~' : ''}[${ind+1}] ${loc}${player.scratched.includes(ind) ? '~~' : ''}`))
-	.setFooter('To cross out/un-cross out a location, type its number.');
+		.setTitle(`You are ${player.isSpy ? '' : '**not**'} the spy!`)
+		.addField('Location Reference', this.locations.map((loc, ind) => `${player.scratched.includes(ind) ? '~~' : ''}[${ind+1}] ${loc}${player.scratched.includes(ind) ? '~~' : ''}`))
+		.setFooter('To cross /un-cross out a location, type its number.');
 	return embed;
-}
+};
+
+SpyfallGame.prototype.leaveGame = function (id) {
+	let player = this.players[id];
+	if (!player) throw new Error('That player was not found');
+	player.collector.stop();
+	this.channel.send(`${player.user} has left the game!`);
+};

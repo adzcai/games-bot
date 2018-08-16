@@ -2,23 +2,27 @@
 
 module.exports = Game;
 
-function Game(id, channel) {
+function Game(id, channel, type) {
 	this.id = id;
 	this.channel = channel;
+	this.type = type;
+	this.server = global.servers[this.channel.guild.id];
 	this.players = {};
 	this.status = 'beginning';
 }
 
-Game.prototype.addPlayer = function (id) {
+Game.prototype.addPlayer = function (id, otherProperties) {
 	this.players[id] = {
 		id: id,
 		game: this,
 		user: global.bot.users.get(id)
 	};
+	Object.assign(this.players[id], otherProperties);
+	this.server.players[id][this.type] = this.id;
 };
 
 Game.prototype.sendCollectorEndedMessage = function (reason) {
-	this.channel.send(`Collector ended. Reason: ${reason}. Type "cancel" to cancel this game and then type .${this.command} to start a new one.`).catch(console.error);
+	this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Type ".${this.command} cancel" to cancel this game and then type .${this.command} to start a new one.`).catch(console.error);
 };
 
 Game.prototype.resetReactions = async function (msg = this.boardMessage, reactions = Object.keys(this.reactions)) {

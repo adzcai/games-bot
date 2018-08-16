@@ -17,7 +17,7 @@ module.exports = async (message, invitationMessage, filter, collectorOptions, on
 	});
 	collector.on('end', (collected, reason) => {
 		try {
-			onEnd(collected, reason)
+			onEnd(collected, reason);
 		} catch (e) {
 			console.error(e);
 		}
