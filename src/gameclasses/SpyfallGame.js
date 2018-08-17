@@ -47,7 +47,7 @@ SpyfallGame.prototype.start = async function (pIDs) {
 
 	this.startingTime = new Date().getTime();
 	this.boardMessage = await this.channel.send(`Time remaining: ${this.gameTime}`);
-	setInterval(() => {
+	global.bot.setInterval(() => {
 		let remaining = this.gameTime - (new Date().getTime() - this.startingTime);
 		if (remaining <= 0) return this.boardMessage.edit('Time\'s up!');
 		let minutes = Math.floor(remaining / 1000 / 60);
@@ -55,6 +55,7 @@ SpyfallGame.prototype.start = async function (pIDs) {
 		let embed = new RichEmbed()
 			.setTitle('Spyfall')
 			.setDescription(`Time remaining: ${minutes}:${seconds}`)
+			.addField('Players', Object.values(this.players).map(p => p.user).join('\n'))
 			.setFooter(`Type .help spyfall to get help about the game. Game ID: ${this.id}`)
 			.setTimestamp();
 		this.boardMessage.edit({embed: embed});
@@ -74,4 +75,5 @@ SpyfallGame.prototype.leaveGame = function (id) {
 	if (!player) throw new Error('That player was not found');
 	player.collector.stop();
 	this.channel.send(`${player.user} has left the game!`);
+	delete this.players[id];
 };

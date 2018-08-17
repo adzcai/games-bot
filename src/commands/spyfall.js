@@ -2,6 +2,7 @@
 
 const RichEmbed = require('discord.js').RichEmbed;
 const SpyfallGame = require('../gameclasses/SpyfallGame.js');
+const defineAliases = require('../internal/defineAliases.js');
 
 module.exports = {
 	run: playSpyfall,
@@ -21,15 +22,18 @@ function getVersion (args) {
 	}
 }
 
-const options = {
+let options = {
 	leave: {
+		aliases: ['l', 'quit', 'q'],
 		run: (message) => {
 			let server = global.servers[message.guild.id];
-			let game = server.games[server.players[message.author.id]];
-			delete game.players[message.author.id];
+			let game = server.games[server.players[message.author.id].spyfall];
+			game.leaveGame(message.author.id);
 		}
 	}
 };
+
+defineAliases(options);
 
 async function playSpyfall(message, args) {
 	let server = global.servers[message.guild.id];
@@ -62,12 +66,9 @@ async function playSpyfall(message, args) {
 			message.channel.send('The collection timed out or there was an error').catch(console.error);
 		});
 	} else {
-		for (let i = 0; i < args.length; i++) {
-			if (options.hasOwnProperty(args[i])) {
-				options[args[i]].action(message);
-				return;
-			}
-		}
+		for (let arg of args)
+			if (options.hasOwnProperty(arg))
+				return options[arg].action(message);
 		message.channel.send('You are already in a game!').catch(console.error);
 	}
 }
