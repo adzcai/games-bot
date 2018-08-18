@@ -1,16 +1,10 @@
 {
   "name": "games-bot",
   "version": "1.0.0",
-  "description": "A discord bot programmed using discord.js to play several turn-based board games",
+  "description": "A Javascript Discord bot used to play board games ",
   "main": "bot.js",
-  "dependencies": {
-    "bufferutil": "^4.0.0",
-    "discord.js": "^11.3.2",
-    "fs": "0.0.1-security",
-    "mysql": "^2.16.0"
-  },
   "scripts": {
-    "test": "node bot.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -19,16 +13,30 @@
   "keywords": [
     "board",
     "games",
+    "discord.js",
+    "discord",
+    "bot",
     "multiplayer",
-    "fun",
     "entertainment",
-    "turn-based",
-    "tic-tac-toe"
+    "fun"
   ],
-  "author": "PiGuyInTheSky",
-  "license": "ISC",
+  "author": "Alexander Cai <alexandercai@outlook.com>",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/piguyinthesky/games-bot/issues"
   },
-  "homepage": "https://github.com/piguyinthesky/games-bot#readme"
+  "homepage": "https://github.com/piguyinthesky/games-bot#readme",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "fs": "0.0.1-security",
+    "mysql": "^2.16.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.3.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.0",
+    "eslint-plugin-standard": "^3.1.0"
+  }
 }

@@ -1,7 +1,6 @@
 node_modules/
 res/auth.json
 res/cachedinfo.json
-.eslintrc.json
 **/.DS_Store
 nodemon.json
 .vscode/
