@@ -1,23 +1,15 @@
 'use strict';
 
-// User commands
-
-module.exports.commands = {
-	showcard: {
-		run: (message, args) => showCard(message, args),
-		usage: (prefix) => `${prefix}showcard __val__ __suit__`,
-		desc: 'shows what the __val__ of __suit__s looks like'
+module.exports = {
+	usage: (prefix) => `${prefix}showcard __val__ __suit__`,
+	desc: 'shows what the __val__ of __suit__s looks like',
+	run: async (message, args) => {
+		let card = createCard(args[0], args[1]);
+		if (!card)
+			return false;
+		card.show(message);
 	}
 };
-
-function showCard(message, args) {
-	let card = createCard(args[0], args[1]);
-	if (!card)
-		return false;
-	card.show(message);
-}
-
-// Dev commands
 
 const suits = {
 	'Spades': /s[pades]?/i,
@@ -39,7 +31,7 @@ function Card(value, suit) {
 	this.description = 'The ' + this.value + ' of ' + this.suit;
 
 	this.show = function (message) {
-		message.channel.send(this.description(), {file: this.imageURL}).catch(console.error);
+		message.channel.send(this.description(), {file: this.imageURL}).catch(global.logger.error);
 	};
 }
 

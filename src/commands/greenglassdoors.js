@@ -7,11 +7,11 @@ module.exports = {
 
 function playGreenGlassDoors(message, phrase) {
 	if (!/[\sa-z]+/i.test(phrase))
-		return message.channel.send('You need to choose something to bring!').catch(console.error);
+		return message.channel.send('You need to choose something to bring!').catch(global.logger.error);
     
 	for (let i = 1; i < phrase.length; i++)
 		if (phrase.charAt(i).toLowerCase() === phrase.charAt(i-1).toLowerCase())
-			return message.channel.send(`Yes, you can bring ${phrase} through the Green Glass Doors.`).catch(console.error);
+			return message.channel.send(`Yes, you can bring ${phrase} through the Green Glass Doors.`).catch(global.logger.error);
     
-	message.channel.send(`No, you cannot bring ${phrase} through the Green Glass Doors.`).catch(console.error);
+	message.channel.send(`No, you cannot bring ${phrase} through the Green Glass Doors.`).catch(global.logger.error);
 }

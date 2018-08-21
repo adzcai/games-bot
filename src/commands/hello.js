@@ -11,7 +11,7 @@ module.exports = {
 			lang = args[0].charAt(0).toUpperCase() + args[0].slice(1);
 		else
 			lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
-		message.channel.send(`${languages[lang]}! (${lang})`).catch(console.error);
+		message.channel.send(`${languages[lang]}! (${lang})`).catch(global.logger.error);
 	}
 };
 

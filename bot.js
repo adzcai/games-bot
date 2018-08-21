@@ -1,82 +1,113 @@
 'use strict';
+require('dotenv').config();
 
 /*
-This is the entry point for GamesBot, a discord bot in javascript using the discord.js library.
-It was first created by Alexander Cai in 2017.
-It's main purpose is to provide entertainment to discord users by allowing them to play board games directly in discord.
-Further information, such as the GitHub repo and installation instructions are in the README.
-Feel free to make a pull request or post any errors you find, even if it's just messy code.
-*/
+ * This is the entry point for GamesBot, a discord bot in javascript using the discord.js library.
+ * It was first created by Alexander Cai in 2017.
+ * It's main purpose is to provide entertainment to discord users by allowing them to play board games directly in discord.
+ * Further information, such as the GitHub repo and installation instructions are in the README.
+ * Feel free to make a pull request or post any errors you find, even if it's just messy code.
+ */
 
-// Importing required modules
-const Discord = require('discord.js');
-const mysql = require('mysql');
-const auth = require('./res/auth.json');
+const { Client } = require('discord.js');
+const { createConnection } = require('mysql');
 const commands = (require('./src/internal/getCommands.js'))();
+require('./src/internal/logger.js');
 
-console.log('Initializing client');
-const bot = new Discord.Client();
+global.logger.info('Initializing client');
+const bot = new Client();
 global.bot = bot;
 
+/*
+ * A MySQL connection to keep track of user scores and pretty much nothing else
+ */
+const dbconn = createConnection({
+	host: 'localhost',
+	user: 'root',
+	password: process.env.DB_PASS,
+	database: 'gamesbot'
+});
+global.dbconn = dbconn;
+dbconn.connect(err => {
+	if (err) throw err;
+	global.logger.info('Connected to database');
+});
+
+/*
+ * From the discord.js docs: "Emitted when the client becomes ready to start working."
+ */
 bot.on('ready', () => {
-	console.log(`${bot.user.username} is connected.`);
+	let initTables, initPlayers;
+	global.logger.info(`${bot.user.username} is connected.`);
 	bot.user.setActivity('with my board games', {type: 'PLAYING'});
+
+	/*
+	 * Initializes the non-permanent servers, where data about games are stored
+	 */
 	global.servers = {};
 	bot.guilds.forEach((guild, guildID) => {
 		global.servers[guildID] = {
 			games: {},
 			players: {}
 		};
-		bot.guilds.get(guildID).members.forEach((member, memberID) => {
-			global.servers[guildID].players[memberID] = {};
-			let sql = `INSERT IGNORE INTO players (userID, serverID) VALUES (${memberID}, ${guildID})`;
-			global.dbconn.query(sql, err => {
+
+		/*
+		 * Makes sure the server and its players are correctly stored in the database
+		 */
+		initTables = `CREATE TABLE IF NOT EXISTS \`${guildID}\` (
+			playerID VARCHAR(20) PRIMARY KEY,
+			score INT DEFAULT 0 
+		)`;
+		global.logger.info(initTables);
+		global.dbconn.query(initTables, err => {
+			if (err) throw err;
+			global.logger.info(`Table for server with ID ${guildID} successfully created`);
+		});
+
+		bot.guilds.get(guildID).members.forEach((member, playerID) => {
+			global.servers[guildID].players[playerID] = {};
+
+			initPlayers = `INSERT IGNORE INTO \`${guildID}\` (playerID, score) VALUES ('${playerID}', 0)`;
+			global.dbconn.query(initPlayers, err => {
 				if (err) throw err;
-				console.log(`(${memberID}, ${guildID}) successfully inserted into players`);
+				global.logger.info(`${bot.users.get(playerID)} successfully added to table`);
 			});
 		});
 	});
 });
 
+let args, cmd;
 bot.on('message', async (message) => {
 	if (message.author.bot) return;
 	if (message.channel.type !== 'text') return;
 
-	if (!(message.content.indexOf(auth.prefix) === 0)) return;
+	if (!(message.content.indexOf(process.env.DEFAULT_PREFIX) === 0)) return;
 
-	let args = message.content.substring(1).split(' ');
-	let cmd = args.shift();
+	args = message.content.substring(1).split(' ');
+	cmd = args.shift();
 
 	if (!commands.hasOwnProperty(cmd))
-		return message.channel.send('That is not a valid command. Please type .help to get help').catch(console.error);
+		return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
 
 	try {
 		commands[cmd].run(message, args);
 	} catch (err) {
-		message.channel.send('Beep boop error error').catch(console.error);
-		console.error(err.stack);
+		message.channel.send('Beep boop error error').catch(global.logger.error);
+		global.logger.error(err.stack);
 	}
 });
 
-const dbconn = mysql.createConnection({
-	host: 'localhost',
-	user: 'root',
-	password: auth.mysqlpw,
-	database: 'gamesbot'
-});
-global.dbconn = dbconn;
-dbconn.connect(err => {
-	if (err) throw err;
-	console.log('Connected to database');
-});
+bot.login(process.env.BOT_TOKEN);
 
-bot.login(auth.token);
-
+/*
+ * This exit handler simply makes sure the program terminates gracefully when
+ * it is killed, nodemon restarts, or an error occurs.
+ */
 let exitHandler = function (exitCode) {
 	dbconn.end((err) => {
 		if (err) throw err;
-		console.log('Mysql connection ended');
-		if (exitCode || exitCode === 0) console.log(exitCode);
+		global.logger.info('Mysql connection ended');
+		if (exitCode || exitCode === 0) global.logger.info(exitCode);
 		process.exit();
 	});
 };

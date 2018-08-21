@@ -22,11 +22,11 @@ Game.prototype.addPlayer = function (id, otherProperties) {
 };
 
 Game.prototype.sendCollectorEndedMessage = function (reason) {
-	this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Type ".${this.command} cancel" to cancel this game and then type .${this.command} to start a new one.`).catch(console.error);
+	this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Type ".${this.command} cancel" to cancel this game and then type .${this.command} to start a new one.`).catch(global.logger.error);
 };
 
 Game.prototype.resetReactions = async function (msg = this.boardMessage, reactions = Object.keys(this.reactions)) {
-	await msg.clearReactions().catch(console.error);
+	await msg.clearReactions().catch(global.logger.error);
 	for (let emoji = 0; emoji < Object.keys(this.reactions).length; emoji++)
 		await msg.react(reactions[emoji]);
 };

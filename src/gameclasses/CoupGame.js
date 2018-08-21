@@ -48,7 +48,7 @@ function promptMove (player) {
 	const collector = user.dmChannel.createMessageCollector(m => /^[1-7]$/.test(m.content));
 	collector.on('collect', m => {
 		let action = Object.values(CoupGame.actions)[parseInt(m) - 1];
-		player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`);
+		player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`).catch(global.logger.error);
 	});
 }
 

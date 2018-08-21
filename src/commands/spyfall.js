@@ -63,12 +63,12 @@ async function playSpyfall(message, args) {
 
 		collector.on('end', (collected, reason) => {
 			if (reason === 'game starting') return;
-			message.channel.send('The collection timed out or there was an error').catch(console.error);
+			message.channel.send('The collection timed out or there was an error').catch(global.logger.error);
 		});
 	} else {
 		for (let arg of args)
 			if (options.hasOwnProperty(arg))
 				return options[arg].action(message);
-		message.channel.send('You are already in a game!').catch(console.error);
+		message.channel.send('You are already in a game!').catch(global.logger.error);
 	}
 }

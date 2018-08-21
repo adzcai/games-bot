@@ -1,4 +1,4 @@
-const RichEmbed = require('discord.js').RichEmbed;
+const { RichEmbed } = require('discord.js');
 
 module.exports = async (message, invitationMessage, filter, collectorOptions, onCollect, onEnd, reactions = []) => {
 	let msg = await message.channel.send(invitationMessage);
@@ -13,13 +13,13 @@ module.exports = async (message, invitationMessage, filter, collectorOptions, on
 		let playerIDs = r.users.keyArray().filter(id => !global.bot.users.get(id).bot);
 		playersEmbed.setDescription(playerIDs.map(id => message.guild.members.get(id)).join('\n'));
 		playersMsg.edit({embed: playersEmbed});
-		onCollect(r, c, playerIDs).catch(console.error);
+		onCollect(r, c, playerIDs).catch(global.logger.error);
 	});
 	collector.on('end', (collected, reason) => {
 		try {
 			onEnd(collected, reason);
 		} catch (e) {
-			console.error(e);
+			global.logger.error(e);
 		}
 	});
 };

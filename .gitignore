@@ -1,6 +1,5 @@
 node_modules/
-res/auth.json
-res/cachedinfo.json
+.env
 **/.DS_Store
 nodemon.json
 .vscode/

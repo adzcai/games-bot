@@ -16,7 +16,7 @@ function sendHelp (message, args) {
 				.setTitle(`${args[0].toLowerCase()} help`)
 				.setDescription(cmd.desc)
 				.addField('Example', cmd.usage ? cmd.usage(prefix) : 'No examples defined yet');
-			return message.channel.send({embed: help}).catch(console.error);
+			return message.channel.send({embed: help}).catch(global.logger.error);
 		} else {
 			return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`);
 		}
@@ -37,6 +37,6 @@ function sendHelp (message, args) {
 		cmds.addField(cmd.usage ? cmd.usage(prefix) : 'No examples defined yet', cmd.desc);
 	});
 
-	message.channel.send({embed: help}).catch(console.error);
-	message.channel.send({embed: cmds}).catch(console.error);
+	message.channel.send({embed: help}).catch(global.logger.error);
+	message.channel.send({embed: cmds}).catch(global.logger.error);
 }

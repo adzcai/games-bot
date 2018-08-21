@@ -47,7 +47,7 @@ async function playCoup (message, args) {
 			if (collected.size < 2) throw new Error(`Collector ended without collecting, or not enough players joined. Reason: ${reason}`);
 			let id = Object.keys(server.games).length;
 			server.games[id] = new CoupGame(id, message.channel);
-			console.log(collected.users);
+			global.logger.info(collected.users);
 			await server.games[id].start(collected.users);
 		};
 		askForPlayers(message,
