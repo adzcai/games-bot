@@ -18,9 +18,7 @@ global.logger.info('Initializing client');
 const bot = new Client();
 global.bot = bot;
 
-/*
- * A MySQL connection to keep track of user scores and pretty much nothing else
- */
+// A MySQL connection to keep track of user scores and pretty much nothing else
 const dbconn = createConnection({
 	host: 'localhost',
 	user: 'root',
@@ -33,16 +31,20 @@ dbconn.connect(err => {
 	global.logger.info('Connected to database');
 });
 
-/*
- * From the discord.js docs: "Emitted when the client becomes ready to start working."
- */
+// From the discord.js docs: "Emitted when the client becomes ready to start working."
 bot.on('ready', () => {
 	let initTables, initPlayers;
 	global.logger.info(`${bot.user.username} is connected.`);
 	bot.user.setActivity('with my board games', {type: 'PLAYING'});
 
 	/*
-	 * Initializes the non-permanent servers, where data about games are stored
+	 * Initializes the non-permanent servers, where data about games are stored.
+	 * The hierarchy of data looks like this (example):
+	 * 			              servers
+	 * 	    /-------------------^  ^--------------------\
+	 *  games: {0: object Game, 1: object Game}      players: {user ID: [0, 2]}
+	 *           \                                                      /
+	 *            \----------------------------------------------------/
 	 */
 	global.servers = {};
 	bot.guilds.forEach((guild, guildID) => {
@@ -51,14 +53,11 @@ bot.on('ready', () => {
 			players: {}
 		};
 
-		/*
-		 * Makes sure the server and its players are correctly stored in the database
-		 */
+		// Makes sure each server and its players are correctly stored in the database
 		initTables = `CREATE TABLE IF NOT EXISTS \`${guildID}\` (
 			playerID VARCHAR(20) PRIMARY KEY,
 			score INT DEFAULT 0 
 		)`;
-		global.logger.info(initTables);
 		global.dbconn.query(initTables, err => {
 			if (err) throw err;
 			global.logger.info(`Table for server with ID ${guildID} successfully created`);
@@ -76,6 +75,10 @@ bot.on('ready', () => {
 	});
 });
 
+/*
+ * The main command for handling messages. If the message starts with the prefix for the bot on the server,
+ * it will run the command they type
+ */
 let args, cmd;
 bot.on('message', async (message) => {
 	if (message.author.bot) return;
@@ -90,6 +93,7 @@ bot.on('message', async (message) => {
 		return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
 
 	try {
+		global.logger.log('info', 'message responded');
 		commands[cmd].run(message, args);
 	} catch (err) {
 		message.channel.send('Beep boop error error').catch(global.logger.error);
