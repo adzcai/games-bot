@@ -11,9 +11,9 @@ const defineAliases = require('../internal/defineAliases.js');
 module.exports = Game;
 
 /*
- * All of the actions are called with the game as the object
+ * All of the actions are called with the game as the object. Parameters: (message, index, args)
  */
-const defaultOptions = {
+const defaultSubcommands = {
 	leave: {
 		aliases: ['leave', 'l', 'quit', 'q'],
 		usage: 'Leaves the game',
@@ -23,7 +23,6 @@ const defaultOptions = {
 	},
 	cancel: {
 		aliases: ['c'],
-		afterInit: true,
 		usage: 'If the user is in a game, cancels it',
 		action: function () {
 			this.end();
@@ -31,7 +30,6 @@ const defaultOptions = {
 	},
 	view: {
 		aliases: ['v'],
-		afterInit: true,
 		usage: 'Resends the game board',
 		action: async function () {
 			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(global.logger.error);
@@ -41,30 +39,28 @@ const defaultOptions = {
 };
 
 const defaultSettings = {
-	options: defineAliases(defaultOptions),
+	subcommands: defineAliases(defaultSubcommands),
 	awaitPlayers: false,
 	numPlayersRange: [2, 4],
 	aliases: []
 };
 
-function Game(id, channel, type, settings) {
+function Game(id, channel, command, ...settings) {
 	this.id = id;
 	this.channel = channel;
-	this.type = type;
+	this.command = command;
 	this.players = {};
-
-	this.settings = Object.assign({}, defaultSettings, settings);
-
-	this.usage = `${process.env.DEFAULT_PREFIX}${type} [**${Object.keys(this.settings.options).join('**] [**')}**]`;
-	this.description = settings.description || `Plays ${this.type}`;
 	this.status = 'beginning';
+	this.usage = `${process.env.DEFAULT_PREFIX}${this.command} [**${Object.keys(this.settings.options).join('**] [**')}**]`;
+	this.description = settings.description || `Plays ${this.command}`;
+	Object.assign(this, defaultSettings, settings);
 }
 
 Game.prototype.init = function (message, args) {
+	this.status = 'running';
 	for (let i = 0; i < args.length; i++)
-		if (Object.keys(this.settings.options).includes(args[i]))
-			if (!this.settings.options[args[i].afterInit])
-				this.settings.options[args[i]].action.call(this.settings, i, args);
+		if (Object.keys(this.commandData.subcommands).includes(args[i]))
+			this.commandData.subcommands[args[i]].action.call(this, message, i, args);
 };
 
 Game.prototype.addPlayer = function (userID, otherProperties) {
@@ -87,23 +83,27 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
 	Object.assign(this.players[userID], otherProperties);
 
 	// Adds this game's ID to the player's list of games
-	global.servers[this.channel.guild.id].players[userID].push(this.id);
+	global.servers[this.channel.guild.id].players[userID][this.command] = this.id;
+};
+
+/*
+ * Sends a prompt to the game's channel, with the given reactions as options.
+ */
+Game.prototype.prompt = async function (str, reactions, id) {
+	let msg = await this.channel.send(str).catch(global.logger.error);
+	for (let r of reactions) await msg.react(r);
+
+	const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, {maxUsers: 1, time: 60 * 1000});
+	if (collected.size < 1) {
+		this.status = 'ended';
+		return this.sendCollectorEndedMessage('timed out').catch(global.logger.error);
+	}
+	return collected;
 };
 
 Game.prototype.sendCollectorEndedMessage = function (reason) {
-	this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
+	this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
 	 and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(global.logger.error);
-};
-
-Game.prototype.resetReactions = async function (msg=this.boardMessage, emojis=Object.keys(this.reactions)) {
-	await msg.clearReactions().catch(global.logger.error);
-	for (let emoji of emojis)
-		await msg.react(emoji);
-};
-
-Game.prototype.areReactionsReset = function (msg=this.boardMessage, reactions = Object.keys(this.reactions)) {
-	const reactedEmojis = msg.reactions.map(re => re.emoji.name);
-	return (reactions.every(emoji => reactedEmojis.includes(emoji)));
 };
 
 /*

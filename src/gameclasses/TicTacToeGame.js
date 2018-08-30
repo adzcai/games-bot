@@ -7,7 +7,7 @@ const AIAction = require('./AIAction.js');
 
 module.exports = TicTacToeGame;
 
-const options = {
+const subcommands = {
 	singleplayer: {
 		aliases: ['s'],
 		usage: 'Starts a singleplayer game.',
@@ -18,7 +18,7 @@ const options = {
 	difficulty: {
 		aliases: ['d'],
 		usage: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
-		action: function (ind, args) {
+		action: function (m, ind, args) {
 			let diff = args[ind+1];
 			[/^e(?:asy)|1$/i, /^m(?:edium)|2$/i, /^h(?:ard)|3$/i].forEach((re, i) => {
 				if (re.test(diff)) this.difficulty = i+1;
@@ -28,7 +28,7 @@ const options = {
 	go: {
 		aliases: ['g'],
 		usage: 'Begins the game with you as the __playernum__th player.',
-		action: function (ind, args) {
+		action: function (m, ind, args) {
 			let goFirst = args[ind+1];
 			if ((/^t(?:rue)|y(?:es)|1$/).test(goFirst))
 				this.p1GoesFirst = true;
@@ -39,7 +39,7 @@ const options = {
 };
 
 function TicTacToeGame (id, channel) {
-	Game.call(this, id, channel, 'tictactoe', { options: options, aliases: ['ttt'], numPlayersRange: [2, 2] });
+	Game.call(this, id, channel, 'tictactoe', { subcommands: subcommands, aliases: ['ttt'], numPlayersRange: [2, 2] });
 	this.reactions = {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0};
 	this.currentState = new BoardGameState(3, 3);
 }
@@ -47,76 +47,56 @@ TicTacToeGame.prototype = Object.create(Game.prototype);
 TicTacToeGame.prototype.constructor = TicTacToeGame;
 
 /*
- * The super call checks through the args given
+ * Starts the game, called from startGame.js when the user starts a message with the game's init command
  */
 TicTacToeGame.prototype.init = async function (message, args) {
 	Object.getPrototypeOf(TicTacToeGame.prototype).init.call(this, message, args);
+	this.addPlayer(message.author.id, {symbol: 'X'});
 	
-	if (message.mentions.users.size > 0) {
-		let challengedMember = message.mentions.members.first();
-		if (challengedMember.user.bot || challengedMember.id === message.author.id) {
-			this.addPlayer(global.bot.user.id, {symbol: 'X'});
-			this.multiplayer = false;
-		} else {
-			let msg = await message.channel.send(`${challengedMember}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`);
-			await msg.react('👍');
-			const collected = await msg.awaitReactions((r, user) => r.emoji.name === '👍' && user.id === challengedMember.id, {maxUsers: 1, time: 60 * 1000});
-			if (collected.size < 1) {
-				this.status = 'ended';
-				return this.sendCollectorEndedMessage('timed out').catch(global.logger.error);
-			}
-			this.addPlayer(challengedMember.id, {symbol: 'X'});
-			this.multiplayer = true;
-			this.start();
-		}
+	if (message.mentions.users.size < 1)
+		return this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(global.logger.error);
+	
+	let challengedMember = message.mentions.members.first();
+	if (challengedMember.user.bot || challengedMember.id === message.author.id) {
+		this.addPlayer(global.bot.user.id, {symbol: 'O'});
+		this.multiplayer = false;
 	} else {
-		this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(global.logger.error);
+		await this.prompt(`${challengedMember}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`, ['👍'], challengedMember.id);
+		if (this.status === 'ended') return;
+		this.addPlayer(challengedMember.id, {symbol: 'O'});
+		this.multiplayer = true;
 	}
+
+	this.start();
 };
 
 TicTacToeGame.prototype.start = async function () {
-	this.currentPlayer = Object.assign({}, this.players[Object.keys(this.players)[0]]);
-
-	global.servers[this.channel.guild.id].players[this.currentPlayer.id].tictactoe = this.id;
-	
 	if (!this.multiplayer) await this.setDifficulty();
 	await this.setP1GoesFirst();
-	this.startPlaying();
-};
 
-TicTacToeGame.prototype.promptDifficulty = async function () {
-	const difficulties = {'🇪': 1, '🇲': 2, '🇭': 3};
-	const msg = await this.channel.send('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?');
-	for (let emoji of ['🇪', '🇲', '🇭']) await msg.react(emoji);
-	const collected = await msg.awaitReactions((r, user) => (r.emoji.name === '🇪' || r.emoji.name === '🇲' || r.emoji.name === '🇭') && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
-	if (collected.size < 1) throw this.sendCollectorEndedMessage();
-	return difficulties[collected.first().emoji.name];
+	this.boardMessage = await this.channel.send({embed: this.boardEmbed()});
+
+	if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol)) this.aiMove();
+	await this.resetReactions();
+
+	this.resetCollector();
 };
 
 TicTacToeGame.prototype.setDifficulty = async function (difficulty) {
-	if (this.multiplayer) return 'You can only set the difficulty in a singleplayer game';
-
+	let collected;
 	if (typeof difficulty === 'undefined')
-		difficulty = await this.promptDifficulty();
-	
-	if (![1, 2, 3].includes(difficulty)) throw 'That is not a valid difficulty setting.';
+		collected = this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.currentPlayer.id);
 
-	this.difficulty = difficulty;
+	this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
 	this.channel.send(`On difficulty ${this.difficulty}.`).catch(global.logger.error);
 };
 
-TicTacToeGame.prototype.promptP1GoesFirst = async function () {
-	const msg = await this.channel.send('Do you want to go first or second?');
-	await msg.react('1⃣');
-	await msg.react('2⃣');
-	let collected = await msg.awaitReactions((r, user) => ['1⃣', '2⃣'].includes(r.emoji.name) && (user.id === this.currentPlayer.id), {maxUsers: 1, time: 60 * 1000});
-	if (collected.size < 1) throw this.sendCollectorEndedMessage();
-	return collected.has('1⃣');
-};
-
 TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
-	if (typeof p1GoesFirst === 'undefined') p1GoesFirst = await this.promptP1GoesFirst();
-	if (!p1GoesFirst) {
+	let collected;
+	if (typeof p1GoesFirst === 'undefined')
+		collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.currentPlayer.id);
+
+	if (!collected.has('1⃣')) {
 		this.currentPlayer.symbol = 'O';
 		this.humanPlayerSymbol = 'O';
 		this.switchPlayer();
@@ -126,14 +106,15 @@ TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
 	this.channel.send(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
 };
 
-TicTacToeGame.prototype.startPlaying = async function () {
-	this.status = 'running';
-	this.boardMessage = await this.channel.send({embed: this.boardEmbed()});
+TicTacToeGame.prototype.resetReactions = async function (msg=this.boardMessage, emojis=Object.keys(this.reactions)) {
+	await msg.clearReactions().catch(global.logger.error);
+	for (let emoji of emojis)
+		await msg.react(emoji);
+};
 
-	if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol)) this.aiMove();
-	await this.resetReactions();
-
-	this.resetCollector();
+TicTacToeGame.prototype.areReactionsReset = function (msg=this.boardMessage, reactions = Object.keys(this.reactions)) {
+	const reactedEmojis = msg.reactions.map(re => re.emoji.name);
+	return (reactions.every(emoji => reactedEmojis.includes(emoji)));
 };
 
 TicTacToeGame.prototype.resetCollector = function () {
