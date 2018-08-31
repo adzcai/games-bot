@@ -1,9 +1,14 @@
 const RichEmbed = require('discord.js').RichEmbed;
 const commands = (require('./../internal/getCommands.js'))();
 module.exports = {
-	run: sendHelp,
+	
 	usage: (prefix) => `${prefix}help [__command__]`,
-	desc: 'sends help'
+	options: {
+		command: 'The command to get help on.',
+		noflag: true
+	},
+	desc: 'sends help',
+	run: sendHelp
 };
 
 function sendHelp (message, args) {

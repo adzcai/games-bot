@@ -1,10 +1,13 @@
-'use strict';
-
 module.exports = {
-	usage: (prefix) => `${prefix}sayHi [**-l** __language__]`,
-	desc: 'Says hello!',
-	options: {'**-l, --language**': 'Says hi in the specified __language__.'},
 	aliases: ['hi', 'sayHi', 'sayHello'],
+	desc: 'Says hello!',
+	options: {
+		language: {
+			aliases: ['l'],
+			arg: 'language',
+			desc: 'The language to say hello in'
+		}
+	},
 	run: (message, args) => {
 		let lang;
 		if (args[0])
@@ -15,7 +18,7 @@ module.exports = {
 	}
 };
 
-const languages = {
+var languages = {
 	'Portuguese': 'Olá',
 	'Latin': 'Salve',
 	'Dutch': 'Hallo',

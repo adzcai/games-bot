@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
 	run: rockPaperScissors,
 	help: 'Plays rock paper scissors',

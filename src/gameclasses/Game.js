@@ -6,54 +6,14 @@
  * be instantiated directly.
  */
 
-const defineAliases = require('../internal/defineAliases.js');
-
 module.exports = Game;
 
-/*
- * All of the actions are called with the game as the object. Parameters: (message, index, args)
- */
-const defaultSubcommands = {
-	leave: {
-		aliases: ['leave', 'l', 'quit', 'q'],
-		usage: 'Leaves the game',
-		action: function (message) {
-			this.leaveGame(message.author.id);
-		}
-	},
-	cancel: {
-		aliases: ['c'],
-		usage: 'If the user is in a game, cancels it',
-		action: function () {
-			this.end();
-		}
-	},
-	view: {
-		aliases: ['v'],
-		usage: 'Resends the game board',
-		action: async function () {
-			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(global.logger.error);
-			this.boardMessage = msg;
-		}
-	}
-};
-
-const defaultSettings = {
-	subcommands: defineAliases(defaultSubcommands),
-	awaitPlayers: false,
-	numPlayersRange: [2, 4],
-	aliases: []
-};
-
-function Game(id, channel, command, ...settings) {
+// All of the actions are called with the game as the object. Parameters: (message, index, args)
+function Game(id, channel) {
 	this.id = id;
 	this.channel = channel;
-	this.command = command;
 	this.players = {};
 	this.status = 'beginning';
-	this.usage = `${process.env.DEFAULT_PREFIX}${this.command} [**${Object.keys(this.settings.options).join('**] [**')}**]`;
-	this.description = settings.description || `Plays ${this.command}`;
-	Object.assign(this, defaultSettings, settings);
 }
 
 Game.prototype.init = function (message, args) {
@@ -115,3 +75,29 @@ Game.prototype.end = async function () {
 	await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(global.logger.error);
 	// delete global.servers[this.channel.guild.id].games[this.id];
 };
+
+// Static functions
+// const defaultOptions = {
+// 	leave: {
+// 		aliases: ['leave', 'l', 'quit', 'q'],
+// 		usage: 'Leaves the game',
+// 		action: function (message) {
+// 			this.leaveGame(message.author.id);
+// 		}
+// 	},
+// 	cancel: {
+// 		aliases: ['c'],
+// 		usage: 'If the user is in a game, cancels it',
+// 		action: function () {
+// 			this.end();
+// 		}
+// 	},
+// 	view: {
+// 		aliases: ['v'],
+// 		usage: 'Resends the game board',
+// 		action: async function () {
+// 			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(global.logger.error);
+// 			this.boardMessage = msg;
+// 		}
+// 	}
+// };

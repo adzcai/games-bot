@@ -10,26 +10,22 @@ const locations = [
 	['Race Track', 'Art Museum', 'Vineyard', 'Baseball Stadium', 'Library', 'Cat Show', 'Retirement Home', 'Jail', 'Construction Site', 'The United Nations', 'Candy Factory', 'Subway', 'Coal Mine', 'Cemetery', 'Rock Concert', 'Jazz Club', 'Wedding', 'Gas Station', 'Harbor Docks', 'Sightseeing Bus']
 ];
 
-module.exports = {
-	run: playSpyfall,
-	usage: (prefix) => `${prefix}spyfall [**-l**] [-v __edition__]`,
-	desc: 'Play Spyfall with a group of friends!',
-};
-
-function getVersion (args) {
-	for (let i = 0; i < args.length; i++) {
-		if (['version', 'v'].includes(args[i])) {
-			let version = args[i + 1];
-			if (!version) return undefined;
-			if (['1', '2', 'both'].includes(version))
-				return version;
-			return undefined;
-		}
-	}
-}
+// function getVersion (args) {
+// 	for (let i = 0; i < args.length; i++) {
+// 		if (['version', 'v'].includes(args[i])) {
+// 			let version = args[i + 1];
+// 			if (!version) return undefined;
+// 			if (['1', '2', 'both'].includes(version))
+// 				return version;
+// 			return undefined;
+// 		}
+// 	}
+// }
 
 function SpyfallGame(id, channel, version = '1', time = 8 * 60 * 1000) {
-	Game.call(this, id, channel);
+	Game.call(this, id, channel, 'spyfall', {
+		description: 'Play Spyfall with a group of friends!',
+	});
 	
 	this.gameTime = time;
 	if (version === '1')

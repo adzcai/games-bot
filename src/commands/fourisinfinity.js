@@ -5,10 +5,12 @@ const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'si
 const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
 
 module.exports = {
-	run: playFourIsInfinity,
-	usage: (prefix) => `${prefix}fourisinfinity __number__`,
-	desc: 'Tells you what number __number__ is, according to the rules of the game. See if you can guess what it is! No hints.',
-	aliases: ['4isinf']
+	aliases: ['4isinf'],
+	desc: 'Tells you what a number is *actually* equal to, according to the rules of the game. See if you can guess what it is! No hints.',
+	params: {
+		number: 'The number to use to try and guess the pattern'
+	},
+	run: playFourIsInfinity
 };
 
 function playFourIsInfinity(message, num) {

@@ -4,11 +4,9 @@ const RichEmbed = require('discord.js').RichEmbed;
 const Game = require('./Game.js');
 const shuffle = require('../internal/shuffle.js');
 
-module.exports = {
-	desc: 'Plays the board game Coup',
-	usage: (prefix) => `${prefix}coup`,
-	run: CoupGame.start
-};
+module.exports = Game.generateCommand(CoupGame, {
+	desc: 'Plays coup'
+});
 
 function CoupGame (id, channel) {
 	Game.call(this, id, channel, 'coup');

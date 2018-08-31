@@ -5,9 +5,16 @@ const Game = require('./Game.js');
 const BoardGameState = require('./BoardGameState.js');
 const AIAction = require('./AIAction.js');
 
-module.exports = TicTacToeGame;
+module.exports = {
+	gameClass: TicTacToeGame,
+	cmd: 'tictactoe',
+	aliases: ['ttt'],
+	desc: 'Plays Tic Tac Toe! Type .help tictactoe for more info.',
+	options: options,
+};
 
-const subcommands = {
+// I only use var here to take advantage of Javascript hoisting
+var options = {
 	singleplayer: {
 		aliases: ['s'],
 		usage: 'Starts a singleplayer game.',
@@ -39,8 +46,10 @@ const subcommands = {
 };
 
 function TicTacToeGame (id, channel) {
-	Game.call(this, id, channel, 'tictactoe', { subcommands: subcommands, aliases: ['ttt'], numPlayersRange: [2, 2] });
-	this.reactions = {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0};
+	Game.call(this, id, channel, {
+		numPlayersRange: [2, 2],
+		reactions: {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0}
+	});
 	this.currentState = new BoardGameState(3, 3);
 }
 TicTacToeGame.prototype = Object.create(Game.prototype);
@@ -85,10 +94,9 @@ TicTacToeGame.prototype.start = async function () {
 TicTacToeGame.prototype.setDifficulty = async function (difficulty) {
 	let collected;
 	if (typeof difficulty === 'undefined')
-		collected = this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.currentPlayer.id);
+		collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.currentPlayer.id);
 
 	this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
-	this.channel.send(`On difficulty ${this.difficulty}.`).catch(global.logger.error);
 };
 
 TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
@@ -119,6 +127,7 @@ TicTacToeGame.prototype.areReactionsReset = function (msg=this.boardMessage, rea
 
 TicTacToeGame.prototype.resetCollector = function () {
 	let reactionFilter = (r, emoji) => r.message.reactions.get(emoji).users.has(this.currentPlayer.id);
+
 	this.collector = this.boardMessage.createReactionCollector(r => {
 		if (this.status !== 'running') return;
 		if (this.currentPlayer.id === global.bot.user.id) return;
@@ -162,27 +171,9 @@ TicTacToeGame.prototype.boardEmbed = function () {
 		.setTimestamp()
 		.setTitle('Tic Tac Toe')
 		.addField('Players', `${Object.values(this.players).map(p => `${p.user} (${p.symbol})`).join(' vs ')}`)
-		.addField('Grid', this.grid())
+		.addField('Grid', this.currentState.grid())
 		.setFooter('Type ".ttt help" to get help about this function.');
 	return embed;
-};
-
-TicTacToeGame.prototype.grid = function () {
-	let result = '';
-	let numbers = ['zero', 'one', 'two', 'three'];
-	
-	for (let row = 0; row < 3; row++) {
-		result += `:${numbers[3 - row]}:`;
-		for (let col = 0; col < 3; col++)
-			result += this.currentState.board.emptyCells().includes(row * 3 + col) ? ':black_large_square:' : (this.currentState.board.contents[row * 3 + col] === 'X' ? ':regional_indicator_x:' : ':regional_indicator_o:');
-		result += '\n';
-	}
-
-	result += ':black_large_square:';
-	let a = 'a'.charCodeAt(0);
-	for (let col = 0; col < 3; col++)
-		result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
-	return result;
 };
 
 TicTacToeGame.prototype.advanceTo = function (state) {

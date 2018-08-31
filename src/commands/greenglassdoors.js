@@ -1,8 +1,10 @@
 module.exports = {
-	run: (message, args) => playGreenGlassDoors(message, args.join(' ')),
-	usage: (prefix) => `${prefix}greenglassdoors __item__`,
-	desc: 'Tells if you can bring __item__ through the green glass doors.',
-	aliases: ['ggg']
+	aliases: ['ggg'],
+	params: {
+		item: 'The item you want to try and bring through the Green Glass Doors'
+	},
+	desc: 'Tells if you can bring an item through the green glass doors.',
+	run: (message, args) => playGreenGlassDoors(message, args.join(' '))
 };
 
 function playGreenGlassDoors(message, phrase) {

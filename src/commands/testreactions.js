@@ -1,6 +1,6 @@
 module.exports = {
 	run: (message) => testReactions(message),
-	help: 'Tests reactions'
+	desc: 'Tests reactions'
 };
 
 async function testReactions (message) {
