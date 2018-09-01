@@ -11,13 +11,7 @@ function BoardGameState(width, height) {
 		this.result = 'running';
 		this.aiMovesCount = 0;
 	} else {
-		let oldState = JSON.parse(JSON.stringify(width));
-		this.currentPlayerSymbol = oldState.currentPlayerSymbol;
-		this.width = oldState.width;
-		this.height = oldState.height;
-		this._contents = oldState.contents;
-		this.result = oldState.result;
-		this.aiMovesCount = oldState.aiMovesCount;
+		Object.assign(this, JSON.parse(JSON.stringify(width)));
 	}
 }
 

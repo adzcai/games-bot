@@ -8,10 +8,13 @@
 
 module.exports = Game;
 
+const commands = require('../internal/getCommands.js')();
+
 // All of the actions are called with the game as the object. Parameters: (message, index, args)
-function Game(id, channel) {
+function Game(id, channel, command) {
 	this.id = id;
 	this.channel = channel;
+	this.command = command;
 	this.players = {};
 	this.status = 'beginning';
 }
@@ -19,8 +22,8 @@ function Game(id, channel) {
 Game.prototype.init = function (message, args) {
 	this.status = 'running';
 	for (let i = 0; i < args.length; i++)
-		if (Object.keys(this.commandData.subcommands).includes(args[i]))
-			this.commandData.subcommands[args[i]].action.call(this, message, i, args);
+		if (Object.keys(commands[this.command].options).includes(args[i]))
+			commands[this.command].options[args[i]].action.call(this, message, i, args);
 };
 
 Game.prototype.addPlayer = function (userID, otherProperties) {

@@ -1,9 +1,12 @@
 'use strict';
 
+let commands;
+
 /*
  * This function simply starts the game. It is called when a player types the prefix followed by
  * the name of the game.
  */
+
 module.exports = async function (message, args, gameClass) {
 	let server = global.servers[message.guild.id];
 
@@ -12,8 +15,9 @@ module.exports = async function (message, args, gameClass) {
 	let argsPassed = false;
 	if (playerGameID) {
 		let playerGame = server.games[playerGameID];
+		commands = (require('./getCommands.js'))();
 		for (let i = 0; i < args.length; i++) {
-			if (playerGame.settings.options.hasOwnProperty(args[i])) {
+			if (commands[playerGame.command].options.hasOwnProperty(args[i])) {
 				args[i].action.call(playerGame, message, args);
 				argsPassed = true;
 			}

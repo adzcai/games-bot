@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-	run: rockPaperScissors,
-	help: 'Plays rock paper scissors',
-	aliases: ['rps']
+	aliases: ['rps'],
+	desc: 'Plays rock paper scissors',
+	run: rockPaperScissors
 };
 
 const reactions = {
@@ -15,10 +15,10 @@ const reactions = {
 const words = ['Rock', 'Paper', 'Scissors'];
 
 const results = [
-	//Rock, Paper, Scissors
-	[0, 1, -1], // Rock
-	[-1, 0, 1], // Paper
-	[1, -1, 0] // Scissors
+	//Rock Paper Scissors
+	[0,    1,    -1], // Rock
+	[-1,   0,    1], // Paper
+	[1,    -1,   0] // Scissors
 ];
 
 async function rockPaperScissors(message) {

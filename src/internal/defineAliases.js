@@ -13,4 +13,5 @@ module.exports = (obj) => {
 		if (val.aliases)
 			val.aliases.forEach(alias => Object.defineProperty(obj, alias, { get: () => val }));
 	});
+	return obj;
 };

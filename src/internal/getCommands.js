@@ -32,7 +32,7 @@ function generateCommand (data, game) {
 	let defaults = game ? {run: (message, args) => startGame(message, args, game)} : {};
 	let cmdData = Object.assign(defaults, data);
 	
-	cmdData.usage = (prefix) => `${prefix}${cmdData.cmd}`;
+	cmdData.usage = cmdData.cmd;
 	if (cmdData.params)
 		Object.getOwnPropertyNames(cmdData.params).forEach(param =>
 			cmdData.usage += ` __${param}__`

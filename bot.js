@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const { Client } = require('discord.js');
 const { createConnection } = require('mysql');
-const commands = (require('./src/internal/getCommands.js'))();
+const commands = require('./src/internal/getCommands.js')();
 require('./src/internal/logger.js');
 
 global.logger.info('Initializing client');
@@ -93,7 +93,7 @@ bot.on('message', async (message) => {
 		return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
 
 	try {
-		global.logger.log('info', 'message responded');
+		global.logger.log('info', 'message responded from user %s. Content: %s', message.author.username, message.content);
 		commands[cmd].run(message, args);
 	} catch (err) {
 		message.channel.send('Beep boop error error').catch(global.logger.error);
@@ -101,7 +101,16 @@ bot.on('message', async (message) => {
 	}
 });
 
+function pruneEndedGames() {
+	global.servers.forEach(server => {
+		for (let gameID of Object.getOwnPropertyNames(server.games))
+			if (server[gameID].status === 'ended')
+				delete server[gameID];
+	});
+}
+
 bot.login(process.env.BOT_TOKEN);
+let handle = setInterval(pruneEndedGames, 5*60*1000);
 
 /*
  * This exit handler simply makes sure the program terminates gracefully when
@@ -111,6 +120,8 @@ let exitHandler = function (exitCode) {
 	dbconn.end((err) => {
 		if (err) throw err;
 		global.logger.info('Mysql connection ended');
+		clearInterval(handle);
+		global.logger.info('Interval cleared');
 		if (exitCode || exitCode === 0) global.logger.info(exitCode);
 		process.exit();
 	});

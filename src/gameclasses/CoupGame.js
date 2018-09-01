@@ -4,9 +4,11 @@ const RichEmbed = require('discord.js').RichEmbed;
 const Game = require('./Game.js');
 const shuffle = require('../internal/shuffle.js');
 
-module.exports = Game.generateCommand(CoupGame, {
-	desc: 'Plays coup'
-});
+module.exports = {
+	cmd: 'coup',
+	desc: 'Plays coup',
+	gameClass: CoupGame
+};
 
 function CoupGame (id, channel) {
 	Game.call(this, id, channel, 'coup');

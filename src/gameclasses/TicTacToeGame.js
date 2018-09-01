@@ -6,25 +6,25 @@ const BoardGameState = require('./BoardGameState.js');
 const AIAction = require('./AIAction.js');
 
 module.exports = {
-	gameClass: TicTacToeGame,
 	cmd: 'tictactoe',
 	aliases: ['ttt'],
 	desc: 'Plays Tic Tac Toe! Type .help tictactoe for more info.',
 	options: options,
+	gameClass: TicTacToeGame
 };
 
 // I only use var here to take advantage of Javascript hoisting
 var options = {
 	singleplayer: {
 		aliases: ['s'],
-		usage: 'Starts a singleplayer game.',
+		desc: 'Starts a singleplayer game.',
 		action: function () {
 			this.multiplayer = false;
 		}
 	},
 	difficulty: {
 		aliases: ['d'],
-		usage: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
+		desc: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
 		action: function (m, ind, args) {
 			let diff = args[ind+1];
 			[/^e(?:asy)|1$/i, /^m(?:edium)|2$/i, /^h(?:ard)|3$/i].forEach((re, i) => {
@@ -34,7 +34,7 @@ var options = {
 	},
 	go: {
 		aliases: ['g'],
-		usage: 'Begins the game with you as the __playernum__th player.',
+		desc: 'Begins the game with you as the __playernum__th player.',
 		action: function (m, ind, args) {
 			let goFirst = args[ind+1];
 			if ((/^t(?:rue)|y(?:es)|1$/).test(goFirst))
