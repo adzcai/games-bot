@@ -1,11 +1,5 @@
 'use strict';
 
-module.exports = {
-	aliases: ['rps'],
-	desc: 'Plays rock paper scissors',
-	run: rockPaperScissors
-};
-
 const reactions = {
 	'🇷': 0,
 	'🇵': 1,
@@ -20,6 +14,12 @@ const results = [
 	[-1,   0,    1], // Paper
 	[1,    -1,   0] // Scissors
 ];
+
+module.exports = {
+	aliases: ['rps'],
+	desc: 'Plays rock paper scissors',
+	run: rockPaperScissors
+};
 
 async function rockPaperScissors(message) {
 	if (message.mentions.members.size < 1) return message.channel.send('Please ping someone to challenge them to tic tac toe!');

@@ -21,7 +21,8 @@ function Game(id, channel, command) {
 
 Game.prototype.init = function (message, args) {
 	this.status = 'running';
-	for (let i = 0; i < args.length; i++)
+	let i, len = args.length;
+	for (i = 0; i < len; i++)
 		if (Object.keys(commands[this.command].options).includes(args[i]))
 			commands[this.command].options[args[i]].action.call(this, message, i, args);
 };

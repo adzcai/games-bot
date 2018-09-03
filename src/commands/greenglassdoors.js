@@ -1,8 +1,11 @@
 module.exports = {
 	aliases: ['ggg'],
 	desc: 'Tells if you can bring an item through the green glass doors.',
-	params: {
-		item: 'The item you want to try and bring through the Green Glass Doors'
+	options: {
+		item: {
+			desc: 'The item you want to try and bring through the Green Glass Doors',
+			required: true
+		}
 	},
 	run: (message, args) => playGreenGlassDoors(message, args.join(' '))
 };

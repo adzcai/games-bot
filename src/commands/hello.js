@@ -1,26 +1,4 @@
-module.exports = {
-	aliases: ['hi', 'sayHi', 'sayHello'],
-	desc: 'Says hello!',
-	options: {
-		language: {
-			aliases: ['l'],
-			desc: 'The language to say hello in',
-			arg: 'language',
-			noflag: true
-		}
-	},
-	run: (message, args) => {
-		let lang;
-		if (args[0])
-			lang = args[0].charAt(0).toUpperCase() + args[0].slice(1);
-		
-		if (!languages.includes(lang))
-			lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
-		message.channel.send(`${languages[lang]}! (${lang})`).catch(global.logger.error);
-	}
-};
-
-let languages = {
+const languages = {
 	'Portuguese': 'Olá',
 	'Latin': 'Salve',
 	'Dutch': 'Hallo',
@@ -38,4 +16,24 @@ let languages = {
 	'Thai': 'สวัสดี',
 	'English': 'Hello',
 	'Italian': 'Ciao'
+};
+
+module.exports = {
+	aliases: ['hi', 'sayHi', 'sayHello'],
+	desc: 'Says hello!',
+	options: {
+		language: {
+			desc: 'The language to say hello in',
+			noflag: true
+		}
+	},
+	run: (message, args) => {
+		let lang;
+		if (args[0])
+			lang = args[0].charAt(0).toUpperCase() + args[0].slice(1);
+		
+		if (!Object.keys(languages).includes(lang))
+			lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
+		message.channel.send(`${languages[lang]}! (${lang})`).catch(global.logger.error);
+	}
 };

@@ -32,15 +32,31 @@ function generateCommand (data, game) {
 	let defaults = game ? {run: (message, args) => startGame(message, args, game)} : {};
 	let cmdData = Object.assign(defaults, data);
 	
-	cmdData.usage = cmdData.cmd;
-	if (cmdData.params)
-		Object.getOwnPropertyNames(cmdData.params).forEach(param =>
-			cmdData.usage += ` __${param}__`
-		);
-	if (cmdData.options)
-		Object.getOwnPropertyNames(cmdData.options).forEach(opt =>
-			cmdData.usage += ` [**${opt}** __${cmdData.options[opt]}__]`
-		);
+	cmdData.usage = cmdData.aliases ? `[${[cmdData.cmd, ...cmdData.aliases].join('|')}]` : cmdData.cmd;
+	if (cmdData.options) {
+		let flags = '';
+		let optData;
+		let optNames = Object.keys(cmdData.options);
+		optNames.forEach(opt => {
+			optData = cmdData.options[opt];
+			if (optData.short) Object.defineProperty(cmdData.options, optData.short, { get () { return optData; } });
+			// No brackets if it is required
+			if (optData.required) {
+				cmdData.usage += ` __${opt}__`;
+				return;
+			}
+			// We add it to the flags if it does not take a param
+			if (optData.flag) {
+				flags += `${optData.short}`;
+				return;
+			}
+			
+			if (optData.noflag) cmdData.usage += ` [__${opt}__]`;
+			else cmdData.usage += ` [**${optData.short}** __${opt}__]`;
+		});
+
+		if (flags.length > 0) cmdData.usage += ` [-${flags}]`;
+	}
 
 	return cmdData;
 }

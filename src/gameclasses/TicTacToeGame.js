@@ -5,25 +5,17 @@ const Game = require('./Game.js');
 const BoardGameState = require('./BoardGameState.js');
 const AIAction = require('./AIAction.js');
 
-module.exports = {
-	cmd: 'tictactoe',
-	aliases: ['ttt'],
-	desc: 'Plays Tic Tac Toe! Type .help tictactoe for more info.',
-	options: options,
-	gameClass: TicTacToeGame
-};
-
-// I only use var here to take advantage of Javascript hoisting
-var options = {
+const options = {
 	singleplayer: {
-		aliases: ['s'],
+		short: 's',
 		desc: 'Starts a singleplayer game.',
 		action: function () {
 			this.multiplayer = false;
-		}
+		},
+		flag: true
 	},
 	difficulty: {
-		aliases: ['d'],
+		short: 'd',
 		desc: 'Sets the difficulty to __difficulty__. Assumes **-s**.',
 		action: function (m, ind, args) {
 			let diff = args[ind+1];
@@ -33,7 +25,7 @@ var options = {
 		}
 	},
 	go: {
-		aliases: ['g'],
+		short: 'g',
 		desc: 'Begins the game with you as the __playernum__th player.',
 		action: function (m, ind, args) {
 			let goFirst = args[ind+1];
@@ -45,11 +37,18 @@ var options = {
 	}
 };
 
+module.exports = {
+	cmd: 'tictactoe',
+	aliases: ['ttt'],
+	desc: 'Plays Tic Tac Toe! Type .help tictactoe for more info.',
+	options: options,
+	gameClass: TicTacToeGame
+};
+
 function TicTacToeGame (id, channel) {
-	Game.call(this, id, channel, {
-		numPlayersRange: [2, 2],
-		reactions: {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0}
-	});
+	Game.call(this, id, channel, 'tictactoe');
+	this.numPlayersRange = [2, 2];
+	this.reactions = {'🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0};
 	this.currentState = new BoardGameState(3, 3);
 }
 TicTacToeGame.prototype = Object.create(Game.prototype);
@@ -62,6 +61,11 @@ TicTacToeGame.prototype.init = async function (message, args) {
 	Object.getPrototypeOf(TicTacToeGame.prototype).init.call(this, message, args);
 	this.addPlayer(message.author.id, {symbol: 'X'});
 	
+	if (this.multiplayer !== undefined && !this.multiplayer) {
+		this.addPlayer(global.bot.user.id, {symbol: 'O'});
+		return this.start();
+	}
+
 	if (message.mentions.users.size < 1)
 		return this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(global.logger.error);
 	

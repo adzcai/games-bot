@@ -1,7 +1,10 @@
 module.exports = {
 	desc: 'Gets the bot to send a phrase.',
-	params: {
-		phrase: 'The phrase for the bot to send'
+	options: {
+		phrase: {
+			desc: 'The phrase for the bot to send',
+			required: true
+		}
 	},
 	run: (message, args) => {
 		if (args.length < 1) return message.channel.send('Cannot echo an empty phrase.');

@@ -93,7 +93,7 @@ bot.on('message', async (message) => {
 		return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
 
 	try {
-		global.logger.log('info', 'message responded from user %s. Content: %s', message.author.username, message.content);
+		global.logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
 		commands[cmd].run(message, args);
 	} catch (err) {
 		message.channel.send('Beep boop error error').catch(global.logger.error);
@@ -102,9 +102,9 @@ bot.on('message', async (message) => {
 });
 
 function pruneEndedGames() {
-	global.servers.forEach(server => {
+	Object.values(global.servers).forEach(server => {
 		for (let gameID of Object.getOwnPropertyNames(server.games))
-			if (server[gameID].status === 'ended')
+			if (server.games[gameID].status === 'ended')
 				delete server[gameID];
 	});
 }
