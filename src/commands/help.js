@@ -11,11 +11,10 @@ module.exports = {
 	run: sendHelp
 };
 
-// Called after because help itself wasn't getting loaded into the function
-const commands = require('../internal/getCommands.js')();
-
 function sendHelp(message, args) {
 	const prefix = process.env.DEFAULT_PREFIX;
+	// Required here so that help itself gets loaded
+	const commands = require('../internal/getCommands.js');
 
 	if (args.length > 0) {
 		if (commands.hasOwnProperty(args[0])) {

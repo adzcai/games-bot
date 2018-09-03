@@ -8,8 +8,6 @@
 
 module.exports = Game;
 
-const commands = require('../internal/getCommands.js')();
-
 // All of the actions are called with the game as the object. Parameters: (message, index, args)
 function Game(id, channel, command) {
 	this.id = id;
@@ -21,10 +19,13 @@ function Game(id, channel, command) {
 
 Game.prototype.init = function (message, args) {
 	this.status = 'running';
+	const commands = require('../internal/getCommands.js');
 	let i, len = args.length;
-	for (i = 0; i < len; i++)
-		if (Object.keys(commands[this.command].options).includes(args[i]))
+	let opts = Object.getOwnPropertyNames(commands[this.command].options);
+	for (i = 0; i < len; i++) {
+		if (opts.includes(args[i]))
 			commands[this.command].options[args[i]].action.call(this, message, i, args);
+	}
 };
 
 Game.prototype.addPlayer = function (userID, otherProperties) {
@@ -48,6 +49,7 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
 
 	// Adds this game's ID to the player's list of games
 	global.servers[this.channel.guild.id].players[userID][this.command] = this.id;
+	return this.players[userID];
 };
 
 /*

@@ -9,7 +9,12 @@ const defineAliases = require('./defineAliases.js');
  * and then loads each file in the gameclasses folder into the
  * same object if it has a command
  */
-module.exports = () => {
+
+const commands = getCommands();
+
+module.exports = commands;
+
+function getCommands() {
 	let commands = {};
 	let cmdData, cmdName, game;
 	
@@ -26,7 +31,7 @@ module.exports = () => {
 	});
 
 	return defineAliases(commands);
-};
+}
 
 function generateCommand (data, game) {
 	let defaults = game ? {run: (message, args) => startGame(message, args, game)} : {};
@@ -35,10 +40,9 @@ function generateCommand (data, game) {
 	cmdData.usage = cmdData.aliases ? `[${[cmdData.cmd, ...cmdData.aliases].join('|')}]` : cmdData.cmd;
 	if (cmdData.options) {
 		let flags = '';
-		let optData;
 		let optNames = Object.keys(cmdData.options);
 		optNames.forEach(opt => {
-			optData = cmdData.options[opt];
+			let optData = Object.assign({}, cmdData.options[opt]);
 			if (optData.short) Object.defineProperty(cmdData.options, optData.short, { get () { return optData; } });
 			// No brackets if it is required
 			if (optData.required) {

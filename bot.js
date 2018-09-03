@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const { Client } = require('discord.js');
 const { createConnection } = require('mysql');
-const commands = require('./src/internal/getCommands.js')();
+const commands = require('./src/internal/getCommands.js');
 require('./src/internal/logger.js');
 
 global.logger.info('Initializing client');

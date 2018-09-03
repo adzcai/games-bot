@@ -59,7 +59,7 @@ TicTacToeGame.prototype.constructor = TicTacToeGame;
  */
 TicTacToeGame.prototype.init = async function (message, args) {
 	Object.getPrototypeOf(TicTacToeGame.prototype).init.call(this, message, args);
-	this.addPlayer(message.author.id, {symbol: 'X'});
+	this.humanPlayer = this.addPlayer(message.author.id, {symbol: 'X'});
 	
 	if (this.multiplayer !== undefined && !this.multiplayer) {
 		this.addPlayer(global.bot.user.id, {symbol: 'O'});
@@ -89,7 +89,7 @@ TicTacToeGame.prototype.start = async function () {
 
 	this.boardMessage = await this.channel.send({embed: this.boardEmbed()});
 
-	if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol)) this.aiMove();
+	if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayer.symbol)) this.aiMove();
 	await this.resetReactions();
 
 	this.resetCollector();
@@ -98,7 +98,7 @@ TicTacToeGame.prototype.start = async function () {
 TicTacToeGame.prototype.setDifficulty = async function (difficulty) {
 	let collected;
 	if (typeof difficulty === 'undefined')
-		collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.currentPlayer.id);
+		collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
 
 	this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
 };
@@ -106,14 +106,11 @@ TicTacToeGame.prototype.setDifficulty = async function (difficulty) {
 TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
 	let collected;
 	if (typeof p1GoesFirst === 'undefined')
-		collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.currentPlayer.id);
+		collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.humanPlayer.id);
 
-	if (!collected.has('1⃣')) {
-		this.currentPlayer.symbol = 'O';
-		this.humanPlayerSymbol = 'O';
-		this.switchPlayer();
-		this.currentPlayer.symbol = 'X';
-	}
+	this.currentPlayer = this.humanPlayer;
+	if (!collected.has('1⃣')) this.switchPlayer();
+	
 	this.currentState.currentPlayerSymbol = this.currentPlayer.symbol;
 	this.channel.send(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
 };
@@ -152,7 +149,7 @@ TicTacToeGame.prototype.resetCollector = function () {
 		next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
 		this.advanceTo(next);
 
-		if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayerSymbol))
+		if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayer.symbol))
 			this.aiMove();
 
 		this.resetReactions();
@@ -207,12 +204,12 @@ TicTacToeGame.prototype.aiMove = function () {
 	} else {
 		let availableActions = available.map(pos => {
 			let availableAction = new AIAction(pos);
-			let nextState = availableAction.applyTo(this.currentState, switchSymbol(this.humanPlayerSymbol));
-			availableAction.minimaxVal = AIAction.minimaxValue(nextState, this.humanPlayerSymbol);
+			let nextState = availableAction.applyTo(this.currentState, switchSymbol(this.humanPlayer.symbol));
+			availableAction.minimaxVal = AIAction.minimaxValue(nextState, this.humanPlayer.symbol);
 			return availableAction;
 		});
 
-		availableActions.sort((turn === this.humanPlayerSymbol) ? AIAction.DESCENDING : AIAction.ASCENDING);
+		availableActions.sort((turn === this.humanPlayer.symbol) ? AIAction.DESCENDING : AIAction.ASCENDING);
 
 		action = (this.difficulty === 2 ?
 			((Math.random() * 100 <= 40) ?
@@ -221,14 +218,14 @@ TicTacToeGame.prototype.aiMove = function () {
 			availableActions[0]);
 	}
 
-	let next = action.applyTo(this.currentState, switchSymbol(this.humanPlayerSymbol));
+	let next = action.applyTo(this.currentState, switchSymbol(this.humanPlayer.symbol));
 	this.advanceTo(next);
 };
 
 TicTacToeGame.prototype.score = function (state) {
-	if (state.result === `${this.humanPlayerSymbol}-won`)
+	if (state.result === `${this.humanPlayer.symbol}-won`)
 		return 10 - state.aiMovesCount;
-	if (state.result === `${switchSymbol(this.humanPlayerSymbol)}-won`)
+	if (state.result === `${switchSymbol(this.humanPlayer.symbol)}-won`)
 		return -10 + state.aiMovesCount;
 	return 0;
 };
