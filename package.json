@@ -32,6 +32,7 @@
   "homepage": "https://github.com/piguyinthesky/games-bot#readme",
   "dependencies": {
     "discord.js": "^11.4.2",
+    "ejs": "^2.6.1",
     "express": "^4.16.4",
     "fs": "0.0.1-security",
     "mysql": "^2.16.0",

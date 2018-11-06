@@ -6,11 +6,7 @@
  * Feel free to make a pull request or post any errors you find, even if it's just messy code.
  */
 
-const express = require('express');
-const path = require('path');
 const { createConnection } = require('mysql');
-const PORT = process.env.PORT || 5000;
-
 const { Client } = require('discord.js');
 const commands = require('./src/internal/getCommands.js');
 require('./src/internal/logger.js');
@@ -18,13 +14,6 @@ require('./src/internal/logger.js');
 global.logger.info('Initializing client');
 const bot = new Client();
 global.bot = bot;
-
-express()
-  .use(express.static(path.join(__dirname, 'public')))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
 // A MySQL connection to keep track of user scores and pretty much nothing else
 const dbconn = createConnection({

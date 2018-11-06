@@ -1,2 +1,3 @@
-web: node app.js
+web: node index.js
+worker: node bot.js
 
