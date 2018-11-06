@@ -2,9 +2,9 @@
   "name": "games-bot",
   "version": "1.0.0",
   "description": "A Javascript Discord bot used to play board games ",
-  "main": "app.js",
+  "main": "bot.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -17,6 +17,7 @@
   "keywords": [
     "board",
     "games",
+    "heroku",
     "discord.js",
     "discord",
     "bot",
