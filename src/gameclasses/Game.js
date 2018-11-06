@@ -20,12 +20,10 @@ function Game(id, channel, command) {
 Game.prototype.init = function (message, args) {
   this.status = 'running';
   const commands = require('../internal/getCommands.js');
-  let i, len = args.length;
   let opts = Object.getOwnPropertyNames(commands[this.command].options);
-  for (i = 0; i < len; i++) {
+  for (let i = 0; i < args.length; i++)
     if (opts.includes(args[i]))
       commands[this.command].options[args[i]].action.call(this, message, i, args);
-  }
 };
 
 Game.prototype.addPlayer = function (userID, otherProperties) {
@@ -42,7 +40,7 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
       gamesList.splice(gamesList.indexOf(this.id), 1);
 
       this.playing = false;
-      // This later gets garbage collected by the game
+      // This later gets destroyed by the interval initiated in bot.js
     }
   };
   Object.assign(this.players[userID], otherProperties);

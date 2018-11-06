@@ -12,7 +12,7 @@ module.exports = {
 };
 
 function sendHelp(message, args) {
-  const prefix = process.env.DEFAULT_PREFIX;
+  const prefix = process.env.DEFAULT_PREFIX || '.';
   // Required here so that help itself gets loaded
   const commands = require('../internal/getCommands.js');
 

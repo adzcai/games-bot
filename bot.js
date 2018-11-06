@@ -6,31 +6,22 @@
  * Feel free to make a pull request or post any errors you find, even if it's just messy code.
  */
 
-const { createConnection } = require('mysql');
 const { Client } = require('discord.js');
 const commands = require('./src/internal/getCommands.js');
+const dotenv = require('dotenv');
+dotenv.load();
+
+let prefix = process.env.DEFAULT_PREFIX || '.';
+
 require('./src/internal/logger.js');
+// require('./dbconn.js');
 
 global.logger.info('Initializing client');
 const bot = new Client();
 global.bot = bot;
 
-// A MySQL connection to keep track of user scores and pretty much nothing else
-const dbconn = createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: process.env.DB_PASS,
-  database: 'gamesbot'
-});
-global.dbconn = dbconn;
-dbconn.connect(err => {
-  if (err) throw err;
-  global.logger.info('Connected to database');
-});
-
 // From the discord.js docs: "Emitted when the client becomes ready to start working."
 bot.on('ready', () => {
-  let initTables, initPlayers;
   global.logger.info(`${bot.user.username} is connected.`);
   bot.user.setActivity('with my board games', {type: 'PLAYING'});
 
@@ -50,24 +41,11 @@ bot.on('ready', () => {
       players: {}
     };
 
-    // Makes sure each server and its players are correctly stored in the database
-    initTables = `CREATE TABLE IF NOT EXISTS \`${guildID}\` (
-			playerID VARCHAR(20) PRIMARY KEY,
-			score INT DEFAULT 0 
-		)`;
-    global.dbconn.query(initTables, err => {
-      if (err) throw err;
-      global.logger.info(`Table for server with ID ${guildID} successfully created`);
-    });
+    // dbconn.initTable(guildID);
 
     bot.guilds.get(guildID).members.forEach((member, playerID) => {
       global.servers[guildID].players[playerID] = {};
-
-      initPlayers = `INSERT IGNORE INTO \`${guildID}\` (playerID, score) VALUES ('${playerID}', 0)`;
-      global.dbconn.query(initPlayers, err => {
-        if (err) throw err;
-        global.logger.info(`${bot.users.get(playerID)} successfully added to table`);
-      });
+      // dbconn.initPlayer(guildID, playerID);
     });
   });
 });
@@ -81,14 +59,13 @@ bot.on('message', async (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
 
-  if (!(message.content.indexOf(process.env.DEFAULT_PREFIX) === 0)) return;
+  if (!(message.content.indexOf(prefix) === 0)) return;
 
   args = message.content.substring(1).split(' ');
   cmd = args.shift();
 
   if (!commands.hasOwnProperty(cmd))
     return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
-
   try {
     global.logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     commands[cmd].run(message, args);
@@ -114,17 +91,20 @@ let handle = setInterval(pruneEndedGames, 5*60*1000);
  * it is killed, nodemon restarts, or an error occurs.
  */
 let exitHandler = function (exitCode) {
-  dbconn.end((err) => {
-    if (err) throw err;
-    global.logger.info('Mysql connection ended');
-    clearInterval(handle);
-    global.logger.info('Interval cleared');
-    if (exitCode || exitCode === 0) global.logger.info(exitCode);
-    process.exit();
-  });
+  // global.dbconn.end((err) => {
+  //   if (err) throw err;
+  //   global.logger.info('Mysql connection ended');
+  // });
+
+  clearInterval(handle);
+  global.logger.info('Interval cleared');
+  if (exitCode !== undefined) global.logger.info(exitCode);
+  process.exit();
 };
 
 process.on('SIGINT', exitHandler);
 process.on('SIGUSR1', exitHandler);
 process.on('SIGUSR2', exitHandler);
 process.on('uncaughtException', exitHandler);
+
+console.log(Math.acos(0) * 2);
