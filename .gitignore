@@ -1,5 +1,10 @@
-node_modules/
-.env
-**/.DS_Store
-nodemon.json
-.vscode/
+# Node build artifacts
+node_modules
+npm-debug.log
+
+# Local development
+*.env
+*.dev
+**.DS_Store
+.vscode
+.eslintrc.json
