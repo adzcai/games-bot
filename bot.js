@@ -23,7 +23,7 @@ global.bot = bot;
 // From the discord.js docs: "Emitted when the client becomes ready to start working."
 bot.on('ready', () => {
   global.logger.info(`${bot.user.username} is connected.`);
-  bot.user.setActivity('with my board games', {type: 'PLAYING'});
+  bot.user.setActivity('with my board games', { type: 'PLAYING' });
 
   /*
 	 * Initializes the non-permanent servers, where data about games are stored.
@@ -106,5 +106,3 @@ process.on('SIGINT', exitHandler);
 process.on('SIGUSR1', exitHandler);
 process.on('SIGUSR2', exitHandler);
 process.on('uncaughtException', exitHandler);
-
-console.log(Math.acos(0) * 2);
