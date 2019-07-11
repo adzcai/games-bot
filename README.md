@@ -1,6 +1,6 @@
 # games-bot
 
-A discord bot to enjoy all your favourite board games with your friends. Tic Tac Toe, Spyfall, Coup, and more. This app was created using [Express 4](http://expressjs.com/), based off of the [Getting Started with Node on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs) article - check it out..
+A Discord bot to enjoy all your favourite board games with your friends. Tic Tac Toe, Spyfall, Coup, and more. This app was created using [Express 4](http://expressjs.com/), based off of the [Getting Started with Node on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs) article - check it out..
 
 
 ## Installation
