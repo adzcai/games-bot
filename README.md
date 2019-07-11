@@ -13,9 +13,8 @@ Installation
 Help
 ----
 ## Info
-- Click [here](https://piguyinthesky.github.io/games-bot/) to visit GamesBot's site! (It's a work in progress)
+- Click [here](https://thepiguy-games-bot.herokuapp.com/) to visit GamesBot's site! (It's a work in progress)
 ## Contribute
 - I'm a Node.js app written using discord.js. If you want to help out, feel free to open up a pull request on my [github repo](https://github.com/piguyinthesky/games-bot)
 ## Invite
 - Click [here](https://discordapp.com/oauth2/authorize?client_id=468534527573098506&permissions=8&scope=bot) to invite GamesBot to your server!
-
