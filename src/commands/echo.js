@@ -3,11 +3,11 @@ module.exports = {
   options: {
     phrase: {
       desc: 'The phrase for the bot to send',
-      required: true
-    }
+      required: true,
+    },
   },
   run: (message, args) => {
     if (args.length < 1) return message.channel.send('Cannot echo an empty phrase.');
     message.channel.send(args.join(' ')).catch(global.logger.error);
-  }
+  },
 };

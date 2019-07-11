@@ -1,4 +1,4 @@
-'use strict';
+
 
 /*
  * This is the parent class for all games in the program.
@@ -20,10 +20,8 @@ function Game(id, channel, command) {
 Game.prototype.init = function (message, args) {
   this.status = 'running';
   const commands = require('../internal/getCommands.js');
-  let opts = Object.getOwnPropertyNames(commands[this.command].options);
-  for (let i = 0; i < args.length; i++)
-    if (opts.includes(args[i]))
-      commands[this.command].options[args[i]].action.call(this, message, i, args);
+  const opts = Object.getOwnPropertyNames(commands[this.command].options);
+  for (let i = 0; i < args.length; i++) if (opts.includes(args[i])) commands[this.command].options[args[i]].action.call(this, message, i, args);
 };
 
 Game.prototype.addPlayer = function (userID, otherProperties) {
@@ -32,16 +30,16 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
     game: this,
     user: global.bot.users.get(userID),
     playing: true,
-    leaveGame: function () {
+    leaveGame() {
       this.game.channel.send(`${this.user} has left the game!`);
-		
+
       // Deletes this game from the player's list of games. Remember, this still references the game
-      let gamesList = global.servers[this.game.channel.guild.id].players[this.id];
+      const gamesList = global.servers[this.game.channel.guild.id].players[this.id];
       gamesList.splice(gamesList.indexOf(this.id), 1);
 
       this.playing = false;
       // This later gets destroyed by the interval initiated in bot.js
-    }
+    },
   };
   Object.assign(this.players[userID], otherProperties);
 
@@ -54,10 +52,10 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
  * Sends a prompt to the game's channel, with the given reactions as options.
  */
 Game.prototype.prompt = async function (str, reactions, id) {
-  let msg = await this.channel.send(str).catch(global.logger.error);
-  for (let r of reactions) await msg.react(r);
+  const msg = await this.channel.send(str).catch(global.logger.error);
+  for (const r of reactions) await msg.react(r);
 
-  const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, {maxUsers: 1, time: 60 * 1000});
+  const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, { maxUsers: 1, time: 60 * 1000 });
   if (collected.size < 1) {
     this.status = 'ended';
     return this.sendCollectorEndedMessage('timed out').catch(global.logger.error);

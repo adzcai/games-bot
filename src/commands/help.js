@@ -1,14 +1,14 @@
-const RichEmbed = require('discord.js').RichEmbed;
+const { RichEmbed } = require('discord.js');
 
 module.exports = {
   desc: 'sends help',
   options: {
     command: {
       desc: 'The command to get help on.',
-      noflag: true
-    }
+      noflag: true,
+    },
   },
-  run: sendHelp
+  run: sendHelp,
 };
 
 function sendHelp(message, args) {
@@ -18,27 +18,25 @@ function sendHelp(message, args) {
 
   if (args.length > 0) {
     if (commands.hasOwnProperty(args[0])) {
-      let cmd = commands[args[0]];
-      let help = new RichEmbed()
+      const cmd = commands[args[0]];
+      const help = new RichEmbed()
         .setTitle(`${args[0]}`)
         .setDescription(cmd.desc)
         .addField('Example', prefix + cmd.usage);
-			
-      let options = [];
+
+      const options = [];
       if (cmd.options) {
         let optionData;
-        for (let option of Object.keys(cmd.options)) {
+        for (const option of Object.keys(cmd.options)) {
           optionData = cmd.options[option];
           if (optionData.required || optionData.noflag) options.push(`__${option}__\n  - ${optionData.desc}`);
           else options.push(`**-${optionData.short}**${option.flag ? '' : `__${option}__`}\n  - ${optionData.desc}`);
         }
       }
-      if (options.length > 0)
-        help.addField('Options', options);
-      return message.channel.send({embed: help}).catch(global.logger.error);
-    } else {
-      return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`).catch(global.logger.error);
+      if (options.length > 0) help.addField('Options', options);
+      return message.channel.send({ embed: help }).catch(global.logger.error);
     }
+    return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`).catch(global.logger.error);
   }
 
   const help = new RichEmbed()
@@ -55,9 +53,9 @@ function sendHelp(message, args) {
     .setTitle('Commands')
     .setDescription(`A list of commands this bot listens to. Type ${prefix}help [__command__] for more info on a given command. \
 		The values within the [brackets] are optional.`);
-	
+
   Object.values(commands).forEach(cmd => cmds.addField(prefix + cmd.usage, cmd.desc));
 
-  message.channel.send({embed: help}).catch(global.logger.error);
-  message.channel.send({embed: cmds}).catch(global.logger.error);
+  message.channel.send({ embed: help }).catch(global.logger.error);
+  message.channel.send({ embed: cmds }).catch(global.logger.error);
 }

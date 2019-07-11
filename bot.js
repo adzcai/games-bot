@@ -7,11 +7,12 @@
  */
 
 const { Client } = require('discord.js');
-const commands = require('./src/internal/getCommands.js');
 const dotenv = require('dotenv');
+const commands = require('./src/internal/getCommands.js');
+
 dotenv.load();
 
-let prefix = process.env.DEFAULT_PREFIX || '.';
+const prefix = process.env.DEFAULT_PREFIX || '.';
 
 require('./src/internal/logger.js');
 // require('./dbconn.js');
@@ -38,7 +39,7 @@ bot.on('ready', () => {
   bot.guilds.forEach((guild, guildID) => {
     global.servers[guildID] = {
       games: {},
-      players: {}
+      players: {},
     };
 
     // dbconn.initTable(guildID);
@@ -54,7 +55,8 @@ bot.on('ready', () => {
  * The main command for handling messages. If the message starts with the prefix for the bot on the server,
  * it will run the command they type
  */
-let args, cmd;
+let args; let
+  cmd;
 bot.on('message', async (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
@@ -64,8 +66,7 @@ bot.on('message', async (message) => {
   args = message.content.substring(1).split(' ');
   cmd = args.shift();
 
-  if (!commands.hasOwnProperty(cmd))
-    return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
+  if (!commands.hasOwnProperty(cmd)) return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
   try {
     global.logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     commands[cmd].run(message, args);
@@ -76,21 +77,19 @@ bot.on('message', async (message) => {
 });
 
 function pruneEndedGames() {
-  Object.values(global.servers).forEach(server => {
-    for (let gameID of Object.getOwnPropertyNames(server.games))
-      if (server.games[gameID].status === 'ended')
-        delete server[gameID];
+  Object.values(global.servers).forEach((server) => {
+    for (const gameID of Object.getOwnPropertyNames(server.games)) if (server.games[gameID].status === 'ended') delete server[gameID];
   });
 }
 
 bot.login(process.env.BOT_TOKEN);
-let handle = setInterval(pruneEndedGames, 5*60*1000);
+const handle = setInterval(pruneEndedGames, 5 * 60 * 1000);
 
 /*
  * This exit handler simply makes sure the program terminates gracefully when
  * it is killed, nodemon restarts, or an error occurs.
  */
-let exitHandler = function (exitCode) {
+const exitHandler = function (exitCode) {
   // global.dbconn.end((err) => {
   //   if (err) throw err;
   //   global.logger.info('Mysql connection ended');
