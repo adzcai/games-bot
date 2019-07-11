@@ -15,7 +15,6 @@ dotenv.load();
 const prefix = process.env.DEFAULT_PREFIX || '.';
 
 require('./src/internal/logger.js');
-// require('./dbconn.js');
 
 global.logger.info('Initializing client');
 const bot = new Client();
@@ -55,8 +54,7 @@ bot.on('ready', () => {
  * The main command for handling messages. If the message starts with the prefix for the bot on the server,
  * it will run the command they type
  */
-let args; let
-  cmd;
+let args; let cmd;
 bot.on('message', async (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
@@ -90,11 +88,6 @@ const handle = setInterval(pruneEndedGames, 5 * 60 * 1000);
  * it is killed, nodemon restarts, or an error occurs.
  */
 const exitHandler = function (exitCode) {
-  // global.dbconn.end((err) => {
-  //   if (err) throw err;
-  //   global.logger.info('Mysql connection ended');
-  // });
-
   clearInterval(handle);
   global.logger.info('Interval cleared');
   if (exitCode !== undefined) global.logger.info(exitCode);
