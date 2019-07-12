@@ -9,7 +9,7 @@ module.exports = {
     },
   },
   run: (message, args) => {
-    fs.readFile('../../res/pidigits.txt', (err, data) => {
+    fs.readFile('../../public/assets/pidigits.txt', (err, data) => {
       if (err) throw err;
       const numdigs = parseInt(args[0]) || 5;
       message.channel.send(data.substring(0, numdigs)).catch(logger.error);
