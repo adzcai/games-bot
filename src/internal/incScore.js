@@ -4,6 +4,6 @@ module.exports = (userID, serverID, score) => {
     WHERE userID=${userID} AND serverID=${serverID}`;
   global.dbcomm.query(sql, (err) => {
     if (err) throw err;
-    global.logger.info(`Score for ${global.bot.users.get(userID)} in server ${global.bot.guilds.get(serverID)} updated to ${score}`);
+    logger.info(`Score for ${bot.users.get(userID)} in server ${bot.guilds.get(serverID)} updated to ${score}`);
   });
 };

@@ -34,9 +34,9 @@ function sendHelp(message, args) {
         }
       }
       if (options.length > 0) help.addField('Options', options);
-      return message.channel.send({ embed: help }).catch(global.logger.error);
+      return message.channel.send({ embed: help }).catch(logger.error);
     }
-    return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`).catch(global.logger.error);
+    return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`).catch(logger.error);
   }
 
   const help = new RichEmbed()
@@ -56,6 +56,6 @@ function sendHelp(message, args) {
 
   Object.values(commands).forEach(cmd => cmds.addField(prefix + cmd.usage, cmd.desc));
 
-  message.channel.send({ embed: help }).catch(global.logger.error);
-  message.channel.send({ embed: cmds }).catch(global.logger.error);
+  message.channel.send({ embed: help }).catch(logger.error);
+  message.channel.send({ embed: cmds }).catch(logger.error);
 }

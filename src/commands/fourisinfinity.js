@@ -17,10 +17,10 @@ module.exports = {
 };
 
 function playFourIsInfinity(message, num) {
-  if (!((parseInt(num) >= 0) && (parseInt(num) <= 999))) return message.channel.send('That is not a valid number. Please enter a number from 0 to 999.').catch(global.logger.error);
+  if (!((parseInt(num) >= 0) && (parseInt(num) <= 999))) return message.channel.send('That is not a valid number. Please enter a number from 0 to 999.').catch(logger.error);
 
   if (num === 4) {
-    return message.channel.send('And 4 is infinity!').catch(global.logger.error);
+    return message.channel.send('And 4 is infinity!').catch(logger.error);
   }
   const digits = `${num}`.split('').map(d => parseInt(d));
 
@@ -38,6 +38,6 @@ function playFourIsInfinity(message, num) {
     else nextNum = `${ones[digits[0]]}hundred${tens[digits[1]]}${ones[digits[2]]}`;
   }
 
-  message.channel.send(`${num} is ${nextNum.length}`).catch(global.logger.error);
+  message.channel.send(`${num} is ${nextNum.length}`).catch(logger.error);
   playFourIsInfinity(message, nextNum.length);
 }

@@ -55,7 +55,7 @@ SpyfallGame.prototype.start = async function (pIDs) {
 
   this.startingTime = new Date().getTime();
   this.boardMessage = await this.channel.send(`Time remaining: ${this.gameTime}`);
-  global.bot.setInterval(() => {
+  bot.setInterval(() => {
     const remaining = this.gameTime - (new Date().getTime() - this.startingTime);
     if (remaining <= 0) return this.boardMessage.edit('Time\'s up!');
     const minutes = Math.floor(remaining / 1000 / 60);

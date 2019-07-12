@@ -1,7 +1,7 @@
 /*
  * This is the entry point for GamesBot, a discord bot in javascript using the discord.js library.
  * It was first created by Alexander Cai in 2017.
- * It's main purpose is to provide entertainment to discord users by allowing them to play board games directly in discord.
+ * Its main purpose is to provide entertainment to discord users by allowing them to play board games directly in discord.
  * Further information, such as the GitHub repo and installation instructions are in the README.
  * Feel free to make a pull request or post any errors you find, even if it's just messy code.
  */
@@ -16,13 +16,12 @@ const prefix = process.env.DEFAULT_PREFIX || '.';
 
 require('./src/internal/logger.js');
 
-global.logger.info('Initializing client');
-const bot = new Client();
-global.bot = bot;
+logger.info('Initializing client');
+global.bot = new Client();
 
 // From the discord.js docs: "Emitted when the client becomes ready to start working."
 bot.on('ready', () => {
-  global.logger.info(`${bot.user.username} is connected.`);
+  logger.info(`${bot.user.username} is connected.`);
   bot.user.setActivity('with my board games', { type: 'PLAYING' });
 
   /*
@@ -64,13 +63,13 @@ bot.on('message', async (message) => {
   args = message.content.substring(1).split(' ');
   cmd = args.shift();
 
-  if (!commands.hasOwnProperty(cmd)) return message.channel.send('That is not a valid command. Please type .help to get help').catch(global.logger.error);
+  if (!commands.hasOwnProperty(cmd)) return message.channel.send('That is not a valid command. Please type .help to get help').catch(logger.error);
   try {
-    global.logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
+    logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     commands[cmd].run(message, args);
   } catch (err) {
-    message.channel.send('Beep boop error error').catch(global.logger.error);
-    global.logger.error(err.stack);
+    message.channel.send('Beep boop error error').catch(logger.error);
+    logger.error(err.stack);
   }
 });
 
@@ -89,8 +88,8 @@ const handle = setInterval(pruneEndedGames, 5 * 60 * 1000);
  */
 const exitHandler = function (exitCode) {
   clearInterval(handle);
-  global.logger.info('Interval cleared');
-  if (exitCode !== undefined) global.logger.info(exitCode);
+  logger.info('Interval cleared');
+  if (exitCode !== undefined) logger.info(exitCode);
   process.exit();
 };
 

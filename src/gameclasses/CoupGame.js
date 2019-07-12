@@ -40,7 +40,7 @@ function createCourtDeck() {
 }
 
 function promptMove(player) {
-  const user = global.bot.users.get(player.id);
+  const user = bot.users.get(player.id);
   let options = 'Which action would you like to take?';
   for (let i = 0; i < Object.keys(CoupGame.actions).length; i++) options += `[${i + 1}] ${Object.keys(CoupGame.actions)[i]} (${Object.values(CoupGame.actions)[i].effect})\n`;
 
@@ -52,7 +52,7 @@ function promptMove(player) {
   const collector = user.dmChannel.createMessageCollector(m => /^[1-7]$/.test(m.content));
   collector.on('collect', (m) => {
     const action = Object.values(CoupGame.actions)[parseInt(m) - 1];
-    player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`).catch(global.logger.error);
+    player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`).catch(logger.error);
   });
 }
 

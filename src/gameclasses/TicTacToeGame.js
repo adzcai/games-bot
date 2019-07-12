@@ -62,15 +62,15 @@ TicTacToeGame.prototype.init = async function (message, args) {
   this.humanPlayer = this.addPlayer(message.author.id, { symbol: 'X' });
 
   if (this.multiplayer !== undefined && !this.multiplayer) {
-    this.addPlayer(global.bot.user.id, { symbol: 'O' });
+    this.addPlayer(bot.user.id, { symbol: 'O' });
     return this.start();
   }
 
-  if (message.mentions.users.size < 1) return this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(global.logger.error);
+  if (message.mentions.users.size < 1) return this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(logger.error);
 
   const challengedMember = message.mentions.members.first();
   if (challengedMember.user.bot || challengedMember.id === message.author.id) {
-    this.addPlayer(global.bot.user.id, { symbol: 'O' });
+    this.addPlayer(bot.user.id, { symbol: 'O' });
     this.multiplayer = false;
   } else {
     await this.prompt(`${challengedMember}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`, ['👍'], challengedMember.id);
@@ -113,7 +113,7 @@ TicTacToeGame.prototype.setP1GoesFirst = async function (p1GoesFirst) {
 };
 
 TicTacToeGame.prototype.resetReactions = async function (msg = this.boardMessage, emojis = Object.keys(this.reactions)) {
-  await msg.clearReactions().catch(global.logger.error);
+  await msg.clearReactions().catch(logger.error);
   for (const emoji of emojis) await msg.react(emoji);
 };
 
@@ -127,7 +127,7 @@ TicTacToeGame.prototype.resetCollector = function () {
 
   this.collector = this.boardMessage.createReactionCollector((r) => {
     if (this.status !== 'running') return;
-    if (this.currentPlayer.id === global.bot.user.id) return;
+    if (this.currentPlayer.id === bot.user.id) return;
     if (!this.areReactionsReset(r.message)) return;
     const rowSelected = ['1⃣', '2⃣', '3⃣'].some(row => reactionFilter(r, row));
     const colSelected = ['🇦', '🇧', '🇨'].some(col => reactionFilter(r, col));
@@ -139,7 +139,7 @@ TicTacToeGame.prototype.resetCollector = function () {
     const col = this.reactions[['🇦', '🇧', '🇨'].filter(col => reactionFilter(r, col))[0]];
 
     const ind = row * 3 + col;
-    if (this.currentState.board.contents[ind] !== ' ') return this.channel.send('That is not a valid move!').catch(global.logger.error);
+    if (this.currentState.board.contents[ind] !== ' ') return this.channel.send('That is not a valid move!').catch(logger.error);
     const next = new BoardGameState(this.currentState);
     next.board.contents[ind] = this.currentState.currentPlayerSymbol;
     next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
@@ -180,7 +180,7 @@ TicTacToeGame.prototype.advanceTo = function (state) {
   this.switchPlayer();
   if (/(?:X|O)-won|draw/i.test(this.currentState.result)) {
     this.status = 'ended';
-    this.channel.send(`${this.currentPlayer} won! GG`).catch(global.logger.error);
+    this.channel.send(`${this.currentPlayer} won! GG`).catch(logger.error);
     this.collector.stop('game over');
     this.boardMessage.clearReactions();
     this.end();

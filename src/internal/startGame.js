@@ -20,7 +20,7 @@ module.exports = async function startGame(message, args, GameClass) {
       }
     });
     if (argsPassed) return;
-    playerGame.channel.send(`You are already in a game! Type ${process.env.DEFAULT_PREFIX}${playerGame.type} view to resend the message.`).catch(global.logger.error);
+    playerGame.channel.send(`You are already in a game! Type ${process.env.DEFAULT_PREFIX}${playerGame.type} view to resend the message.`).catch(logger.error);
     return;
   }
 

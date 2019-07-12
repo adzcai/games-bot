@@ -28,7 +28,7 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
   this.players[userID] = {
     id: userID,
     game: this,
-    user: global.bot.users.get(userID),
+    user: bot.users.get(userID),
     playing: true,
     leaveGame() {
       this.game.channel.send(`${this.user} has left the game!`);
@@ -52,20 +52,20 @@ Game.prototype.addPlayer = function (userID, otherProperties) {
  * Sends a prompt to the game's channel, with the given reactions as options.
  */
 Game.prototype.prompt = async function (str, reactions, id) {
-  const msg = await this.channel.send(str).catch(global.logger.error);
+  const msg = await this.channel.send(str).catch(logger.error);
   for (const r of reactions) await msg.react(r);
 
   const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, { maxUsers: 1, time: 60 * 1000 });
   if (collected.size < 1) {
     this.status = 'ended';
-    return this.sendCollectorEndedMessage('timed out').catch(global.logger.error);
+    return this.sendCollectorEndedMessage('timed out').catch(logger.error);
   }
   return collected;
 };
 
 Game.prototype.sendCollectorEndedMessage = function (reason) {
   this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
-	 and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(global.logger.error);
+	 and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(logger.error);
 };
 
 /*
@@ -74,7 +74,7 @@ Game.prototype.sendCollectorEndedMessage = function (reason) {
 Game.prototype.end = async function () {
   this.players.forEach(player => player.leaveGame());
   this.status = 'ended';
-  await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(global.logger.error);
+  await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(logger.error);
   // delete global.servers[this.channel.guild.id].games[this.id];
 };
 
@@ -98,7 +98,7 @@ Game.prototype.end = async function () {
 // 		aliases: ['v'],
 // 		usage: 'Resends the game board',
 // 		action: async function () {
-// 			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(global.logger.error);
+// 			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(logger.error);
 // 			this.boardMessage = msg;
 // 		}
 // 	}
