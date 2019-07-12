@@ -1,28 +1,26 @@
-
-
 const BoardGameState = require('./BoardGameState.js');
 
-module.exports = AIAction;
+class AIAction {
+  constructor(pos) {
+    this.movePosition = pos;
+    this.minimaxVal = 0;
+  }
 
-function AIAction(pos) {
-  this.movePosition = pos;
-  this.minimaxVal = 0;
-}
-
-/*
+  /*
  * Applies a move to a given state and returns the new state
  */
-AIAction.prototype.applyTo = function (state, botSymbol) {
-  const next = new BoardGameState(state);
-  const temp = next.board.contents.slice();
-  temp[this.movePosition] = state.currentPlayerSymbol;
-  next.board.contents = temp;
+  applyTo(state, botSymbol) {
+    const next = new BoardGameState(state);
+    const temp = next.board.contents.slice();
+    temp[this.movePosition] = state.currentPlayerSymbol;
+    next.board.contents = temp;
 
-  if (next.currentPlayerSymbol === botSymbol) next.aiMovesCount++;
-  next.currentPlayerSymbol = (next.currentPlayerSymbol === 'X') ? 'O' : 'X';
+    if (next.currentPlayerSymbol === botSymbol) next.aiMovesCount++;
+    next.currentPlayerSymbol = (next.currentPlayerSymbol === 'X') ? 'O' : 'X';
 
-  return next;
-};
+    return next;
+  }
+}
 
 /*
  * These are used to sort actions by their minimax values
@@ -62,3 +60,5 @@ AIAction.minimaxValue = function (state, humanPlayerSymbol) {
 
   return stateScore;
 };
+
+module.exports = AIAction;

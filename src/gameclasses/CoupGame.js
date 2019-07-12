@@ -1,35 +1,27 @@
-
-
 const { RichEmbed } = require('discord.js');
 const Game = require('./Game.js');
 const shuffle = require('../internal/shuffle.js');
 
-module.exports = {
-  cmd: 'coup',
-  desc: 'Plays coup',
-  gameClass: CoupGame,
-};
-
-function CoupGame(id, channel) {
-  Game.call(this, id, channel, 'coup');
-}
-CoupGame.prototype = Object.create(Game.prototype);
-CoupGame.constructor = CoupGame;
-
-CoupGame.prototype.start = function (settings) {
-  this.players = {};
-  this.deck = createCourtDeck();
-  for (let i = 0; i < settings.players.length; i++) {
-    this.addPlayer(settings.players[i]);
-    settings.players[i].cards = [this.game.topCard(true), this.game.topCard(true)];
-    settings.players[i].coins = 2;
+class CoupGame extends Game {
+  constructor(id, channel) {
+    super(id, channel, 'coup');
   }
-  promptMove(this.players[0]);
-};
 
-CoupGame.prototype.topCard = function (deleteAfter) {
-  return deleteAfter ? (delete this.cards(0)) : this.cards[0];
-};
+  start(settings) {
+    this.players = {};
+    this.deck = createCourtDeck();
+    for (let i = 0; i < settings.players.length; i++) {
+      this.addPlayer(settings.players[i]);
+      settings.players[i].cards = [this.game.topCard(true), this.game.topCard(true)];
+      settings.players[i].coins = 2;
+    }
+    promptMove(this.players[0]);
+  }
+
+  topCard(deleteAfter) {
+    return deleteAfter ? (delete this.cards(0)) : this.cards[0];
+  }
+}
 
 function createCourtDeck() {
   const deck = [];
@@ -87,4 +79,10 @@ CoupGame.cards = {
   Ambassador: new Card('Ambassador', CoupGame.actions.Exchange, 'Steal'),
   Captain: new Card('Captain', CoupGame.actions.Steal, 'Steal'),
   Contessa: new Card('Contessa', undefined, 'Assassinate'),
+};
+
+module.exports = {
+  cmd: 'coup',
+  desc: 'Plays coup',
+  gameClass: CoupGame,
 };

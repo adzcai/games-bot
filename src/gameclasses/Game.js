@@ -6,77 +6,77 @@
  * be instantiated directly.
  */
 
-module.exports = Game;
-
 // All of the actions are called with the game as the object. Parameters: (message, index, args)
-function Game(id, channel, command) {
-  this.id = id;
-  this.channel = channel;
-  this.command = command;
-  this.players = {};
-  this.status = 'beginning';
-}
+class Game {
+  constructor(id, channel, command) {
+    this.id = id;
+    this.channel = channel;
+    this.command = command;
+    this.players = {};
+    this.status = 'beginning';
+  }
 
-Game.prototype.init = function (message, args) {
-  this.status = 'running';
-  const commands = require('../internal/getCommands.js');
-  const opts = Object.getOwnPropertyNames(commands[this.command].options);
-  for (let i = 0; i < args.length; i++) if (opts.includes(args[i])) commands[this.command].options[args[i]].action.call(this, message, i, args);
-};
+  init(message, args) {
+    this.status = 'running';
+    const commands = require('../internal/getCommands.js');
+    const opts = Object.getOwnPropertyNames(commands[this.command].options);
+    for (let i = 0; i < args.length; i++) if (opts.includes(args[i])) commands[this.command].options[args[i]].action.call(this, message, i, args);
+  }
 
-Game.prototype.addPlayer = function (userID, otherProperties) {
-  this.players[userID] = {
-    id: userID,
-    game: this,
-    user: bot.users.get(userID),
-    playing: true,
-    leaveGame() {
-      this.game.channel.send(`${this.user} has left the game!`);
+  addPlayer(userID, otherProperties) {
+    this.players[userID] = {
+      id: userID,
+      game: this,
+      user: bot.users.get(userID),
+      playing: true,
+      leaveGame() {
+        this.game.channel.send(`${this.user} has left the game!`);
 
-      // Deletes this game from the player's list of games. Remember, this still references the game
-      const gamesList = global.servers[this.game.channel.guild.id].players[this.id];
-      gamesList.splice(gamesList.indexOf(this.id), 1);
+        // Deletes this game from the player's list of games. Remember, this still references the game
+        const gamesList = global.servers[this.game.channel.guild.id].players[this.id];
+        gamesList.splice(gamesList.indexOf(this.id), 1);
 
-      this.playing = false;
+        this.playing = false;
       // This later gets destroyed by the interval initiated in bot.js
-    },
-  };
-  Object.assign(this.players[userID], otherProperties);
+      },
+    };
+    Object.assign(this.players[userID], otherProperties);
 
-  // Adds this game's ID to the player's list of games
-  global.servers[this.channel.guild.id].players[userID][this.command] = this.id;
-  return this.players[userID];
-};
+    // Adds this game's ID to the player's list of games
+    global.servers[this.channel.guild.id].players[userID][this.command] = this.id;
+    return this.players[userID];
+  }
 
-/*
+  /*
  * Sends a prompt to the game's channel, with the given reactions as options.
  */
-Game.prototype.prompt = async function (str, reactions, id) {
-  const msg = await this.channel.send(str).catch(logger.error);
-  for (const r of reactions) await msg.react(r);
+  async prompt(str, reactions, id) {
+    const msg = await this.channel.send(str).catch(logger.error);
+    for (const r of reactions) await msg.react(r);
 
-  const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, { maxUsers: 1, time: 60 * 1000 });
-  if (collected.size < 1) {
-    this.status = 'ended';
-    return this.sendCollectorEndedMessage('timed out').catch(logger.error);
+    const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, { maxUsers: 1, time: 60 * 1000 });
+    if (collected.size < 1) {
+      this.status = 'ended';
+      return this.sendCollectorEndedMessage('timed out').catch(logger.error);
+    }
+    return collected;
   }
-  return collected;
-};
 
-Game.prototype.sendCollectorEndedMessage = function (reason) {
-  this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
+  sendCollectorEndedMessage(reason) {
+    this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
 	 and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(logger.error);
-};
+  }
 
-/*
+  /*
  * Deletes the game and removes it from its players' lists.
  */
-Game.prototype.end = async function () {
-  this.players.forEach(player => player.leaveGame());
-  this.status = 'ended';
-  await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(logger.error);
+  async end() {
+    this.players.forEach(player => player.leaveGame());
+    this.status = 'ended';
+    await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(logger.error);
   // delete global.servers[this.channel.guild.id].games[this.id];
-};
+  }
+}
 
 // Static functions
 // const defaultOptions = {
@@ -103,3 +103,5 @@ Game.prototype.end = async function () {
 // 		}
 // 	}
 // };
+
+module.exports = Game;
