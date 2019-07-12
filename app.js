@@ -38,14 +38,11 @@ express()
   .use('/api/discord/login', passport.authenticate('discord', { scope: scopes }))
   .get('/api/discord/callback', passport.authenticate('discord', {
     failureRedirect: '/',
-    successRedirect: '/loggedin',
+    successRedirect: '/commands',
   }))
   .use('/api/discord/logout', (req, res) => {
     req.logout();
     res.redirect('/');
-  })
-  .get('/loggedin', (req, res) => {
-    res.send('You have been logged in');
   })
   .use((req, res, next) => {
     res.status(404).render('pages/404');
