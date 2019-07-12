@@ -1,6 +1,6 @@
 const fs = require('fs');
-const startGame = require('./startGame.js');
-const defineAliases = require('./defineAliases.js');
+const startGame = require('./startGame');
+const defineAliases = require('./defineAliases');
 
 /*
  * Loads each file in the commands folder into an object,

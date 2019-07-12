@@ -18,7 +18,7 @@ class Game {
 
   init(message, args) {
     this.status = 'running';
-    const commands = require('../internal/getCommands.js');
+    const commands = require('../util/getCommands.js');
     const opts = Object.getOwnPropertyNames(commands[this.command].options);
     for (let i = 0; i < args.length; i++) if (opts.includes(args[i])) commands[this.command].options[args[i]].action.call(this, message, i, args);
   }

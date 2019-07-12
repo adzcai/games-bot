@@ -1,4 +1,4 @@
-const commands = require('./getCommands.js');
+const commands = require('./getCommands');
 
 /*
  * This function simply starts the game. It is called when a player types the prefix followed by

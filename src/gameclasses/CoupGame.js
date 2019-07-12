@@ -1,6 +1,6 @@
 const { RichEmbed } = require('discord.js');
 const Game = require('./Game.js');
-const shuffle = require('../internal/shuffle.js');
+const shuffle = require('../util/shuffle.js');
 
 class CoupGame extends Game {
   constructor(id, channel) {

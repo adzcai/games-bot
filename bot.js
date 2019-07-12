@@ -8,13 +8,13 @@
 
 const { Client } = require('discord.js');
 const dotenv = require('dotenv');
-const commands = require('./src/internal/getCommands.js');
+const commands = require('./src/util/getCommands.js');
 
 dotenv.load();
 
 const prefix = process.env.DEFAULT_PREFIX || '.';
 
-require('./src/internal/logger.js');
+require('./src/util/logger.js');
 
 logger.info('Initializing client');
 global.bot = new Client();
