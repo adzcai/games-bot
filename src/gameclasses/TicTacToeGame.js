@@ -114,7 +114,6 @@ class TicTacToeGame extends Game {
   }
 
   resetCollector() {
-    logger.debug('resetting collector')
     const reactionFilter = (r, emoji) => r.message.reactions.get(emoji).users.has(this.currentPlayer.id);
 
     this.collector = this.boardMessage.createReactionCollector((r) => {
@@ -133,7 +132,6 @@ class TicTacToeGame extends Game {
       const ind = row * 3 + col;
       if (this.currentState.board.contents[ind] !== ' ') return this.channel.send('That is not a valid move!').catch(logger.error);
 
-      console.log('creating next board game state')
       const next = new BoardGameState(this.currentState);
       next.board.contents[ind] = this.currentState.currentPlayerSymbol;
       next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
