@@ -33,6 +33,10 @@ const options = {
   },
 };
 
+function switchSymbol(sym) {
+  return (sym === 'X') ? 'O' : 'X';
+}
+
 class TicTacToeGame extends Game {
   constructor(id, channel) {
     super(id, channel, 'tictactoe');
@@ -43,9 +47,10 @@ class TicTacToeGame extends Game {
     this.currentState = new BoardGameState(3, 3);
   }
 
-  /*
-  * Starts the game, called from startGame.js when the user starts a message with the game's init command
-  */
+  /**
+   * Starts the game, called from startGame.js when the user starts a message with the game's init
+   * command
+   */
   async init(message, args) {
     super.init(message, args);
 
@@ -75,19 +80,15 @@ class TicTacToeGame extends Game {
   async start() {
     if (!this.multiplayer) await this.setDifficulty();
     await this.setP1GoesFirst();
-
     this.boardMessage = await this.channel.send({ embed: this.boardEmbed() });
-
-    if (!this.multiplayer && !(this.currentState.currentPlayerSymbol === this.humanPlayer.symbol)) this.aiMove();
+    if (!this.multiplayer && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) this.aiMove();
     await this.resetReactions();
-
     this.resetCollector();
   }
 
   async setDifficulty(difficulty) {
     let collected;
     if (typeof difficulty === 'undefined') collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
-
     this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
   }
 
@@ -100,7 +101,6 @@ class TicTacToeGame extends Game {
 
     this.currentState.currentPlayerSymbol = this.currentPlayer.symbol;
     this.channel.send(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
-    logger.info('test');
   }
 
   async resetReactions(msg = this.boardMessage, emojis = Object.keys(this.reactions)) {
@@ -197,12 +197,11 @@ class TicTacToeGame extends Game {
       });
 
       availableActions.sort((turn === this.humanPlayer.symbol) ? AIAction.DESCENDING : AIAction.ASCENDING);
-
-      action = (this.difficulty === 2
-        ? ((Math.random() * 100 <= 40)
-          ? availableActions[0]
-          : ((availableActions.length >= 2) ? availableActions[1] : availableActions[0]))
-        : availableActions[0]);
+      if (this.difficulty === 3 || (this.difficulty === 2 && (Math.random() < 0.4 || availableActions.length < 2))) {
+        [action] = availableActions;
+      } else {
+        [, action] = availableActions;
+      }
     }
 
     const next = action.applyTo(this.currentState, switchSymbol(this.humanPlayer.symbol));
@@ -214,10 +213,6 @@ class TicTacToeGame extends Game {
     if (state.result === `${switchSymbol(this.humanPlayer.symbol)}-won`) return -10 + state.aiMovesCount;
     return 0;
   }
-}
-
-function switchSymbol(sym) {
-  return (sym === 'X') ? 'O' : 'X';
 }
 
 module.exports = {

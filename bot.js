@@ -25,14 +25,14 @@ bot.on('ready', () => {
   bot.user.setActivity('with my board games', { type: 'PLAYING' });
 
   /*
-	 * Initializes the non-permanent servers, where data about games are stored.
-	 * The hierarchy of data looks like this (example):
-	 * 			              servers
-	 * 	    /-------------------^  ^--------------------\
-	 *  games: {0: object Game, 1: object Game}      players: {user ID: [0, 2]}
-	 *           \                                                      /
-	 *            \----------------------------------------------------/
-	 */
+     * Initializes the non-permanent servers, where data about games are stored.
+     * The hierarchy of data looks like this (example):
+     *                           servers
+     *         /-------------------^  ^--------------------\
+     *  games: {0: object Game, 1: object Game}      players: {user ID: [0, 2]}
+     *           \                                                      /
+     *            \----------------------------------------------------/
+     */
   global.servers = {};
   bot.guilds.forEach((guild, guildID) => {
     global.servers[guildID] = {

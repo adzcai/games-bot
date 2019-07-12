@@ -43,16 +43,16 @@ function sendHelp(message, args) {
     .setTitle('Help')
     .setDescription('Hi, I\'m the Games Bot! Are you having a fun time?')
     .addField('Info', 'Click [here](https://piguyinthesky.github.io/games-bot/) to visit GamesBot\'s site! \
-		(It\'s a work in progress)')
+    (It\'s a work in progress)')
     .addField('Contribute', 'I\'m a Node.js app written using discord.js. If you want to help out, \
-		feel free to open up a pull request on my [github repo](https://github.com/piguyinthesky/games-bot)')
+    feel free to open up a pull request on my [github repo](https://github.com/piguyinthesky/games-bot)')
     .addField('Invite', 'Click [here](https://discordapp.com/oauth2/authorize?client_id=468534527573098506&permissions=8&scope=bot) \
-		to invite GamesBot to your server!');
+    to invite GamesBot to your server!');
 
   const cmds = new RichEmbed()
     .setTitle('Commands')
     .setDescription(`A list of commands this bot listens to. Type ${prefix}help [__command__] for more info on a given command. \
-		The values within the [brackets] are optional.`);
+    The values within the [brackets] are optional.`);
 
   Object.values(commands).forEach(cmd => cmds.addField(prefix + cmd.usage, cmd.desc));
 

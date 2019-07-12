@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --fix --ignore-path .gitignore"
+    "lint": "eslint . --fix --ignore-path .gitignore",
+    "log": "git log --all --decorate --oneline --graph"
   },
   "engines": {
     "node": "^11.0.0"

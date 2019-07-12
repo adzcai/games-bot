@@ -34,7 +34,7 @@ async function rockPaperScissors(message) {
     }
     const msg = await player.user.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
     for (let i = 0; i < 3; i++) await msg.react(Object.keys(reactions)[i]);
-    const collected = await msg.awaitReactions((r, user) => r.emoji.name === '🇷' || r.emoji.name === '🇵' || r.emoji.name === '🇸' && user.id === player.id, { maxUsers: 1, time: 60 * 1000 });
+    const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 });
     if (collected.size < 1) return this.sendCollectorEndedMessage().catch(logger.error);
     player.user.send(`You chose ${reactions[collected.first().emoji.name]}.`);
     choices[ind] = reactions[collected.first().emoji.name];

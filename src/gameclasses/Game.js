@@ -64,7 +64,7 @@ class Game {
 
   sendCollectorEndedMessage(reason) {
     this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
-	 and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(logger.error);
+     and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(logger.error);
   }
 
   /*
@@ -80,28 +80,28 @@ class Game {
 
 // Static functions
 // const defaultOptions = {
-// 	leave: {
-// 		aliases: ['leave', 'l', 'quit', 'q'],
-// 		usage: 'Leaves the game',
-// 		action: function (message) {
-// 			this.leaveGame(message.author.id);
-// 		}
-// 	},
-// 	cancel: {
-// 		aliases: ['c'],
-// 		usage: 'If the user is in a game, cancels it',
-// 		action: function () {
-// 			this.end();
-// 		}
-// 	},
-// 	view: {
-// 		aliases: ['v'],
-// 		usage: 'Resends the game board',
-// 		action: async function () {
-// 			const msg = await this.channel.send({embed: this.boardEmbed()}).catch(logger.error);
-// 			this.boardMessage = msg;
-// 		}
-// 	}
+//     leave: {
+//         aliases: ['leave', 'l', 'quit', 'q'],
+//         usage: 'Leaves the game',
+//         action: function (message) {
+//             this.leaveGame(message.author.id);
+//         }
+//     },
+//     cancel: {
+//         aliases: ['c'],
+//         usage: 'If the user is in a game, cancels it',
+//         action: function () {
+//             this.end();
+//         }
+//     },
+//     view: {
+//         aliases: ['v'],
+//         usage: 'Resends the game board',
+//         action: async function () {
+//             const msg = await this.channel.send({embed: this.boardEmbed()}).catch(logger.error);
+//             this.boardMessage = msg;
+//         }
+//     }
 // };
 
 module.exports = Game;

@@ -7,15 +7,15 @@ const locations = [
 ];
 
 // function getVersion (args) {
-// 	for (let i = 0; i < args.length; i++) {
-// 		if (['version', 'v'].includes(args[i])) {
-// 			let version = args[i + 1];
-// 			if (!version) return undefined;
-// 			if (['1', '2', 'both'].includes(version))
-// 				return version;
-// 			return undefined;
-// 		}
-// 	}
+//     for (let i = 0; i < args.length; i++) {
+//         if (['version', 'v'].includes(args[i])) {
+//             let version = args[i + 1];
+//             if (!version) return undefined;
+//             if (['1', '2', 'both'].includes(version))
+//                 return version;
+//             return undefined;
+//         }
+//     }
 // }
 
 class SpyfallGame extends Game {

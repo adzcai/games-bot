@@ -1,5 +1,3 @@
-
-
 const fs = require('fs');
 const startGame = require('./startGame.js');
 const defineAliases = require('./defineAliases.js');
@@ -9,30 +7,6 @@ const defineAliases = require('./defineAliases.js');
  * and then loads each file in the gameclasses folder into the
  * same object if it has a command
  */
-
-const commands = getCommands();
-
-module.exports = commands;
-
-function getCommands() {
-  const commands = {};
-  let cmdData; let cmdName; let
-    game;
-
-  fs.readdirSync('src/commands').forEach((file) => {
-    cmdData = require(`../commands/${file}`);
-    cmdName = file.slice(0, -3);
-
-    commands[cmdName] = generateCommand(Object.assign(cmdData, { cmd: cmdName }));
-  });
-
-  fs.readdirSync('src/gameclasses').forEach((file) => {
-    game = require(`../gameclasses/${file}`);
-    if (game.cmd) commands[game.cmd] = generateCommand(game, game.gameClass);
-  });
-
-  return defineAliases(commands);
-}
 
 function generateCommand(data, game) {
   const defaults = game ? { run: (message, args) => startGame(message, args, game) } : {};
@@ -44,7 +18,11 @@ function generateCommand(data, game) {
     const optNames = Object.keys(cmdData.options);
     optNames.forEach((opt) => {
       const optData = Object.assign({}, cmdData.options[opt]);
-      if (optData.short) Object.defineProperty(cmdData.options, optData.short, { get() { return optData; } });
+      if (optData.short) {
+        Object.defineProperty(cmdData.options, optData.short, {
+          get() { return optData; },
+        });
+      }
       // No brackets if it is required
       if (optData.required) {
         cmdData.usage += ` __${opt}__`;
@@ -65,3 +43,27 @@ function generateCommand(data, game) {
 
   return cmdData;
 }
+
+function getCommands() {
+  const commands = {};
+  let cmdData; let cmdName; let
+    game;
+
+  fs.readdirSync('src/commands').forEach((file) => {
+    cmdData = require(`../commands/${file}`); // eslint-disable-line
+    cmdName = file.slice(0, -3);
+
+    commands[cmdName] = generateCommand(Object.assign(cmdData, { cmd: cmdName }));
+  });
+
+  fs.readdirSync('src/gameclasses').forEach((file) => {
+    game = require(`../gameclasses/${file}`); // eslint-disable-line
+    if (game.cmd) commands[game.cmd] = generateCommand(game, game.gameClass);
+  });
+
+  return defineAliases(commands);
+}
+
+const commands = getCommands();
+
+module.exports = commands;
