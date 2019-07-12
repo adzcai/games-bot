@@ -1,0 +1,57 @@
+<% include ../partials/header.ejs %>
+
+<div class="row">
+
+  <div class="col-3">
+    <ul class="nav flex-column sticky-top pt-5">
+      <% for (let cmd in commands) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="#<%= cmd %>"><%= cmd %></a>
+        </li>
+      <% } %>
+    </ul>
+  </div>
+
+  <div class="col-9">
+    <% let cmdsList = Object.keys(commands) %>
+    <% for (let i = 0; i < cmdsList.length; i++) { %>
+      <% if (i) { %>
+        <hr class="my-4">
+      <% } %>
+
+      <% let cmd = commands[cmdsList[i]]; %>
+
+      <h1 id="<%= cmdsList[i] %>"><%= cmdsList[i] %></h1>
+      <p><%= commands[cmdsList[i]].desc %></p>
+
+      <h3>Example</h3>
+      <pre><%= commands[cmdsList[i]].usage %></pre>
+
+      <% if (cmd.options) { %>
+        <h3>Options</h3>
+        <% for (let option of Object.keys(cmd.options)) { %>
+          <% let optionData = cmd.options[option]; %>
+          <% if (optionData.required || optionData.noflag) { %>
+            <p class="font-weight-bold"><%= option %></p>
+            <ul>
+              <li><%= optionData.desc %></li>
+            </ul>
+          <% } else { %>
+            <p>
+              <span class="font-weight-bold">-<%= optionData.short %></span>
+              <% if (!option.flag) { %>
+                <u><%= option %></u>
+              <% } %>
+            </p>
+            <ul>
+              <li><%= optionData.desc %></li>
+            </ul>
+          <% } %>
+        <% } %>
+      <% } %>
+    <% } %>
+  </div>
+
+</div>
+
+<% include ../partials/footer.ejs %>
