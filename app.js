@@ -15,7 +15,7 @@ const scopes = ['identify', 'email', /* 'connections', (it is currently broken) 
 passport.use(new Strategy({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: `http://localhost:${PORT}/api/discord/callback`,
+  callbackURL: process.env.ENV === 'local' ? `http://localhost:${PORT}/api/discord/callback` : 'https://thepiguy-games-bot.herokuapp.com/api/discord/callback',
   scope: scopes,
 }, (accessToken, refreshToken, profile, done) => {
   process.nextTick(() => done(null, profile));
@@ -30,7 +30,6 @@ express()
   .use(passport.initialize())
   .use(passport.session())
   .use(express.static(path.join(__dirname, 'public')))
-  // .use('/api/discord', require('./api/discord'))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
