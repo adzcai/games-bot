@@ -7,6 +7,10 @@ const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;
 
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
@@ -21,7 +25,12 @@ passport.use(new Strategy({
   process.nextTick(() => done(null, profile));
 }));
 
-express()
+function checkAuth(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.status(403).send('not logged in :(');
+}
+
+app
   .use(session({
     secret: 'keyboard cat',
     resave: false,
@@ -32,7 +41,7 @@ express()
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
+  .get('/', (req, res) => res.render('pages/index', { user: req.user }))
   .get('/commands', (req, res) => res.render('pages/commands', { commands }))
   .use('/api/discord/login', passport.authenticate('discord', { scope: scopes }))
   .get('/api/discord/callback', passport.authenticate('discord', {
@@ -59,5 +68,18 @@ express()
           error: err.message,
         });
     }
-  })
-  .listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
+  });
+  
+io.on('connection', (socket) => {
+  console.log('A user connected');
+  socket
+    .on('chat message', (msg) => {
+      console.log(msg);
+      socket.broadcast.emit('chat message', msg);
+    })
+    .on('disconnect', () => {
+      console.log('A user disconnected')
+    })
+});
+
+http.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
