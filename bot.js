@@ -7,14 +7,9 @@
  */
 
 const { Client } = require('discord.js');
-const dotenv = require('dotenv');
 const commands = require('./src/util/getCommands.js');
 
-dotenv.load();
-
 const prefix = process.env.DEFAULT_PREFIX || '.';
-
-require('./src/util/logger.js');
 
 logger.info('Initializing client');
 global.bot = new Client();
@@ -73,34 +68,4 @@ bot.on('message', async (message) => {
   }
 });
 
-function pruneEndedGames() {
-  Object.values(global.servers).forEach((server) => {
-    for (const gameID of Object.getOwnPropertyNames(server.games)) if (server.games[gameID].status === 'ended') delete server[gameID];
-  });
-}
-
 bot.login(process.env.BOT_TOKEN);
-const handle = setInterval(pruneEndedGames, 5 * 60 * 1000);
-
-/*
- * This exit handler simply makes sure the program terminates gracefully when
- * it is killed, nodemon restarts, or an error occurs.
- */
-function exitHandler(exitCode) {
-  clearInterval(handle);
-  logger.info('Interval cleared');
-  if (exitCode) logger.info(`Exit code: ${exitCode}`);
-  process.exit();
-}
-
-process.on('SIGINT', exitHandler);
-process.on('SIGTERM', exitHandler);
-process.on('SIGUSR1', exitHandler);
-process.on('SIGUSR2', exitHandler);
-/**
- * We set up an uncaught exception capture callback so that the bot keeps running even when an
- * error occurs
- */
-process.setUncaughtExceptionCaptureCallback((err) => {
-  logger.error(`An error occurred: ${err}`);
-});

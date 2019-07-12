@@ -1,8 +1,15 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const { Strategy } = require('passport-discord');
 const path = require('path');
+
+require('./src/util/logger');
+require('./bot');
+require('./src/util/exitHandler');
+
 const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;

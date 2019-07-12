@@ -4,7 +4,7 @@
   "description": "A Discord bot to enjoy all your favourite board games with your friends",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --ignore-path .gitignore",
     "log": "git log --all --decorate --oneline --graph"
