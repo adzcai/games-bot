@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
   <a class="navbar-brand" href="/">
-    <img class="rounded mr-3 align-top" src="/assets/img/games-bot-logo.png" width="30" height="30" alt="chess piece wearing a crown">
+    <img class="rounded mr-3 align-top d-inline-block" src="/assets/img/games-bot-logo.png" width="30" height="30" alt="chess piece wearing a crown">
     Games Bot
   </a>
 
@@ -16,13 +16,22 @@
     </ul>
     
     <ul class="navbar-nav ml-auto mr-sm-2">
-      <li class="nav-item">
-        <a class="btn btn-primary" href="/api/discord/login">Login through discord</a>
-      </li>
+      <% if (typeof user === "undefined") { %>
+        <li class="nav-item">
+          <a class="btn btn-primary" href="/api/discord/login">Login through discord</a>
+        </li>
+      <% } else { %>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <img class="rounded mr-1 align-top d-inline-block" src="<%= user.user.avatarURL %>" width="30" height="30">
+            <span class="align-middle d-inline-block"><%= user.username %></span>
+          </a>
+        </li>
+      <% } %>
     </ul>
 
     <form class="form-inline mr-sm-2" action="">
-      <input class="form-control mr-sm-2" id="cmd">
+      <input class="form-control mr-sm-2" id="cmd" placeholder="Message the bot!">
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Send</button>
     </form>
 

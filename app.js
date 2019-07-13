@@ -10,6 +10,7 @@ require('./src/util/logger');
 require('./bot');
 require('./src/util/exitHandler');
 
+const asyncMiddleware = require('./src/util/asyncMiddleware');
 const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;
@@ -21,7 +22,7 @@ const io = require('socket.io')(http);
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-const scopes = ['identify', 'email', /* 'connections', (it is currently broken) */ 'guilds', 'guilds.join'];
+const scopes = ['identify', 'guilds', 'guilds.join'];
 
 passport.use(new Strategy({
   clientID: process.env.CLIENT_ID,
@@ -48,7 +49,14 @@ app
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index', { user: req.user }))
+  .use(asyncMiddleware(async (req, res, next) => {
+    if (req.user)
+      req.user.user = await bot.fetchUser(req.user.id);
+    res.locals.user = req.user;
+    res.locals.bot = bot;
+    next();
+  }))
+  .get('/', (req, res) => res.render('pages/index'))
   .get('/commands', (req, res) => res.render('pages/commands', { commands }))
   .use('/api/discord/login', passport.authenticate('discord', { scope: scopes }))
   .get('/api/discord/callback', passport.authenticate('discord', {
