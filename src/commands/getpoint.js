@@ -1,15 +1,9 @@
-const { Message } = require('discord.js');
-const Score = require('../server/models/Score');
+const Score = require('../../server/models/Score');
 
 module.exports = {
   desc: 'Please don\'t spam this TOO much.',
   aliases: ['pt'],
-  /**
-   *
-   * @param {Message} message
-   * @param {Array} args
-   */
-  run(message, args) {
+  run(message) {
     Score.findOne({
       userId: message.author.id,
       serverId: message.guild.id,
@@ -32,7 +26,7 @@ module.exports = {
         res.save().catch(logger.error);
       }
 
-      message.reply('You just gained `1` point!').catch(logger.info);
+      return message.reply('You just gained `1` point!').catch(logger.info);
     });
   },
 };
