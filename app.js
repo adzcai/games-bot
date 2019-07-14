@@ -14,7 +14,6 @@ require('./src/util/exitHandler');
 require('./bot');
 
 const asyncMiddleware = require('./server/asyncMiddleware');
-const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;
 const { MONGODB_URI } = process.env;
@@ -57,7 +56,7 @@ app
     next();
   }))
   .get('/', (req, res) => res.render('pages/index'))
-  .get('/commands', (req, res) => res.render('pages/commands', { commands }))
+  .get('/commands', (req, res) => res.render('pages/commands'))
   .use('/api/discord', require('./server/api/discord'))
   .use('/games', checkAuth, require('./server/routes/games'))
   .use((req, res) => {

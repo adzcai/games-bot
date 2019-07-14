@@ -18,9 +18,12 @@ class Game {
 
   init(message, args) {
     this.status = 'running';
-    const commands = require('../util/getCommands.js');
-    const opts = Object.getOwnPropertyNames(commands[this.command].options);
-    for (let i = 0; i < args.length; i++) if (opts.includes(args[i])) commands[this.command].options[args[i]].action.call(this, message, i, args);
+    const opts = Object.getOwnPropertyNames(bot.commands.get(this.command).options);
+    for (let i = 0; i < args.length; i += 1) {
+      if (opts.includes(args[i])) {
+        bot.commands.get(this.command).options[args[i]].action.call(this, message, i, args);
+      }
+    }
   }
 
   addPlayer(userID, otherProperties) {
@@ -32,8 +35,9 @@ class Game {
       leaveGame() {
         this.game.channel.send(`${this.user} has left the game!`);
 
-        // Deletes this game from the player's list of games. Remember, this still references the game
-        const gamesList = global.servers[this.game.channel.guild.id].players[this.id];
+        // Deletes this game from the player's list of games. Remember, this still references the
+        // game
+        const gamesList = servers[this.game.channel.guild.id].players[this.id];
         gamesList.splice(gamesList.indexOf(this.id), 1);
 
         this.playing = false;
@@ -43,7 +47,7 @@ class Game {
     Object.assign(this.players[userID], otherProperties);
 
     // Adds this game's ID to the player's list of games
-    global.servers[this.channel.guild.id].players[userID][this.command] = this.id;
+    servers[this.channel.guild.id].players[userID][this.command] = this.id;
     return this.players[userID];
   }
 
@@ -74,7 +78,6 @@ class Game {
     this.players.forEach(player => player.leaveGame());
     this.status = 'ended';
     await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(logger.error);
-  // delete global.servers[this.channel.guild.id].games[this.id];
   }
 }
 

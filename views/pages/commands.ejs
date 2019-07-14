@@ -4,7 +4,7 @@
 
   <div class="col-3">
     <ul class="nav flex-column sticky-top pt-5">
-      <% for (let cmd in commands) { %>
+      <% for (let cmd of bot.commands.keyArray()) { %>
         <li class="nav-item">
           <a class="nav-link" href="#<%= cmd %>"><%= cmd %></a>
         </li>
@@ -13,19 +13,19 @@
   </div>
 
   <div class="col-9">
-    <% let cmdsList = Object.keys(commands) %>
+    <% let cmdsList = bot.commands.keyArray() %>
     <% for (let i = 0; i < cmdsList.length; i++) { %>
       <% if (i) { %>
         <hr class="my-4">
       <% } %>
 
-      <% let cmd = commands[cmdsList[i]]; %>
+      <% let cmd = bot.commands.get(cmdsList[i]); %>
 
       <h1 id="<%= cmdsList[i] %>"><%= cmdsList[i] %></h1>
-      <p><%= commands[cmdsList[i]].desc %></p>
+      <p><%= cmd.desc %></p>
 
       <h3>Example</h3>
-      <pre><%= commands[cmdsList[i]].usage %></pre>
+      <pre><%= cmd.usage %></pre>
 
       <% if (cmd.options) { %>
         <h3>Options</h3>
