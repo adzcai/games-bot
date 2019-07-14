@@ -1,12 +1,10 @@
 function pruneEndedGames() {
-  Object.values(servers).forEach((server) => {
-    Object.getOwnPropertyNames(server.games).forEach((gameId) => {
-      if (server.games[gameId].status === 'ended') delete server[gameId];
-    });
+  bot.games.filter(game => game.status === 'ended').forEach((game) => {
+    bot.games.delete(game.id);
   });
 }
 
-const handle = setInterval(pruneEndedGames, 5 * 60 * 1000);
+const handle = setInterval(pruneEndedGames, 60 * 1000);
 
 /*
  * This exit handler simply makes sure the program terminates gracefully when
@@ -28,5 +26,5 @@ process.on('SIGUSR2', exitHandler);
  * error occurs
  */
 process.setUncaughtExceptionCaptureCallback((err) => {
-  logger.error(`An error occurred: ${err}`);
+  logger.error(`An error occurred. ${(err.stack)}`);
 });
