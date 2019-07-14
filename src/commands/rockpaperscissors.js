@@ -32,11 +32,8 @@ module.exports = {
       }
 
       const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
-      // eslint-disable-next-line no-restricted-syntax
-      for (const r of Object.keys(reactions)) {
-        // eslint-disable-next-line no-await-in-loop
-        await msg.react(r);
-      }
+      // eslint-disable-next-line no-await-in-loop
+      for (const r of Object.keys(reactions)) await msg.react(r);
 
       const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 }).catch(logger.error);
       if (collected.size < 1) {
