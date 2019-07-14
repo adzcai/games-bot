@@ -46,8 +46,9 @@ function generateCommand(data, game) {
 
 function getCommands() {
   const commands = {};
-  let cmdData; let cmdName; let
-    game;
+  let cmdData;
+  let cmdName;
+  let game;
 
   fs.readdirSync('src/commands').forEach((file) => {
     cmdData = require(`../commands/${file}`); // eslint-disable-line
@@ -64,6 +65,4 @@ function getCommands() {
   return defineAliases(commands);
 }
 
-const commands = getCommands();
-
-module.exports = commands;
+module.exports = getCommands();
