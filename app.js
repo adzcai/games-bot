@@ -7,6 +7,7 @@ const passport = require('passport');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo')(session);
 
 require('./src/util/logger');
 require('./src/util/exitHandler');
@@ -42,6 +43,7 @@ app
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
   }))
   .use(passport.initialize())
   .use(passport.session())
