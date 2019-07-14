@@ -1,9 +1,9 @@
 <% include ../partials/header.ejs %>
 
-<div class="row">
+<div class="row mb-5">
 
   <div class="col-3">
-    <ul class="nav flex-column sticky-top pt-5">
+    <ul class="nav flex-column sticky-top">
       <% for (let cmd of bot.commands.keyArray()) { %>
         <li class="nav-item">
           <a class="nav-link" href="#<%= cmd %>"><%= cmd %></a>
@@ -13,42 +13,41 @@
   </div>
 
   <div class="col-9">
-    <% let cmdsList = bot.commands.keyArray() %>
+    <% let cmdsList = bot.commands.keyArray().filter(opt => !bot.commands.get(opt).isAlias) %>
     <% for (let i = 0; i < cmdsList.length; i++) { %>
       <% if (i) { %>
         <hr class="my-4">
       <% } %>
 
       <% let cmd = bot.commands.get(cmdsList[i]); %>
-
-      <h1 id="<%= cmdsList[i] %>"><%= cmdsList[i] %></h1>
-      <p><%= cmd.desc %></p>
-
-      <h3>Example</h3>
-      <pre><%= cmd.usage %></pre>
-
-      <% if (cmd.options) { %>
-        <h3>Options</h3>
-        <% for (let option of Object.keys(cmd.options)) { %>
-          <% let optionData = cmd.options[option]; %>
-          <% if (optionData.required || optionData.noflag) { %>
-            <p class="font-weight-bold"><%= option %></p>
-            <ul>
-              <li><%= optionData.desc %></li>
-            </ul>
-          <% } else { %>
-            <p>
-              <span class="font-weight-bold">-<%= optionData.short %></span>
-              <% if (!option.flag) { %>
-                <u><%= option %></u>
+      <div class="card">
+        <div class="card-header">
+          <%= cmd.usage %>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title mb-3" id="<%= cmdsList[i] %>"><%= cmdsList[i] %></h3>
+          <h5 class="card-subtitle text-muted"><%= cmd.desc %></h5>
+          <% if (cmd.options) { %>
+            <h6 class="card-subtitle my-3">Options</h6>
+            <ul class="list-group list-group-flush">
+              <% for (let option of Object.keys(cmd.options)) { %>
+                <% let optionData = cmd.options[option]; %>
+                <% if (optionData.required || optionData.noflag) { %>
+                  <li class="list-group-item"><span class="font-weight-bold"><%= option %></span> <%= optionData.desc %></li>
+                <% } else { %>
+                  <li class="list-group-item">
+                    <span class="font-weight-bold">-<%= optionData.short %></span>
+                    <% if (!option.flag) { %>
+                      <u><%= option %></u>
+                    <% } %>
+                    <%= optionData.desc %>
+                  </li>
+                <% } %>
               <% } %>
-            </p>
-            <ul>
-              <li><%= optionData.desc %></li>
             </ul>
           <% } %>
-        <% } %>
-      <% } %>
+        </div>
+      </div>
     <% } %>
   </div>
 
