@@ -12,7 +12,7 @@ module.exports = {
     fs.readFile('../../public/assets/pidigits.txt', (err, data) => {
       if (err) throw err;
       const numdigs = parseInt(args[0], 10) || 5;
-      message.channel.send(data.substring(0, numdigs)).catch(logger.error);
+      message.channel.send(data.substring(0, numdigs));
     });
   },
 };

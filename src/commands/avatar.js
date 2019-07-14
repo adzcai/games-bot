@@ -7,6 +7,6 @@ module.exports = {
     },
   },
   run(message) {
-    message.reply((message.mentions.users.first() || message.author).avatarURL).catch(logger.error);
+    message.reply((message.mentions.users.first() || message.author).avatarURL);
   },
 };

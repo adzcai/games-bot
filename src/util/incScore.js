@@ -17,10 +17,10 @@ module.exports = (userId, serverId, score) => {
         score,
       });
 
-      newScore.save().catch(logger.error);
+      newScore.save();
     } else {
       res.score += score;
-      res.save().catch(logger.error);
+      res.save();
     }
   });
 };

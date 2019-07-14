@@ -9,14 +9,14 @@ module.exports = {
   },
   run(message, args) {
     const phrase = args.join(' ');
-    if (!/[\sa-z]+/i.test(phrase)) return message.channel.send('You need to choose something to bring!').catch(logger.error);
+    if (!/[\sa-z]+/i.test(phrase)) return message.channel.send('You need to choose something to bring!');
 
     for (let i = 1; i < phrase.length; i += 1) {
       if (phrase.charAt(i).toLowerCase() === phrase.charAt(i - 1).toLowerCase()) {
-        return message.channel.send(`Yes, you can bring ${phrase} through the Green Glass Doors.`).catch(logger.error);
+        return message.channel.send(`Yes, you can bring ${phrase} through the Green Glass Doors.`);
       }
     }
 
-    return message.channel.send(`No, you cannot bring ${phrase} through the Green Glass Doors.`).catch(logger.error);
+    return message.channel.send(`No, you cannot bring ${phrase} through the Green Glass Doors.`);
   },
 };

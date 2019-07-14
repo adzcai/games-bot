@@ -30,9 +30,9 @@ module.exports = {
           });
         }
         if (options.length > 0) help.addField('Options', options);
-        return message.channel.send({ embed: help }).catch(logger.error);
+        return message.channel.send({ embed: help });
       }
-      return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`).catch(logger.error);
+      return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`);
     }
 
     const help = new RichEmbed()
@@ -50,7 +50,7 @@ module.exports = {
       .filter(cmd => !cmd.isAlias)
       .forEach(cmd => cmds.addField(prefix + cmd.usage, cmd.desc));
 
-    message.channel.send({ embed: help }).catch(logger.error);
-    return message.channel.send({ embed: cmds }).catch(logger.error);
+    message.channel.send({ embed: help });
+    return message.channel.send({ embed: cmds });
   },
 };

@@ -23,7 +23,7 @@ module.exports = {
       message.channel.send('Please ping someone to challenge them!');
       return;
     }
-    message.channel.send('Wait for a DM to tell me your choice!').catch(logger.error);
+    message.channel.send('Wait for a DM to tell me your choice!');
     const players = [message.author, message.mentions.users.first()];
 
     Promise.all(players.map(async (player) => {
@@ -31,13 +31,13 @@ module.exports = {
         return Object.values(reactions)[Math.floor(Math.random() * 3)];
       }
 
-      const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
+      const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?');
       // eslint-disable-next-line no-await-in-loop
       for (const r of Object.keys(reactions)) await msg.react(r);
 
-      const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 }).catch(logger.error);
+      const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 });
       if (collected.size < 1) {
-        return message.channel.send('The collector timed out. Please play again!').catch(logger.error);
+        return message.channel.send('The collector timed out. Please play again!');
       }
 
       player.send(`You chose ${collected.first().emoji.name}.`);
@@ -58,7 +58,7 @@ module.exports = {
         incScore(loser.id, message.guild.id, -3);
       }
 
-      return message.channel.send(result).catch(logger.error);
+      return message.channel.send(result);
     });
   },
 };

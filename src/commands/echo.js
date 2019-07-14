@@ -8,6 +8,6 @@ module.exports = {
   },
   run(message, args) {
     if (args.length < 1) return message.channel.send('Cannot echo an empty phrase.');
-    return message.channel.send(args.join(' ')).catch(logger.error);
+    return message.channel.send(args.join(' '));
   },
 };

@@ -47,7 +47,7 @@ bot.on('message', async (message) => {
   cmd = args.shift();
 
   if (!bot.commands.has(cmd)) {
-    message.channel.send('That is not a valid command. Please type .help to get help').catch(logger.error);
+    message.channel.send('That is not a valid command. Please type .help to get help');
     return;
   }
 
@@ -55,7 +55,7 @@ bot.on('message', async (message) => {
     logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     bot.commands.get(cmd).run(message, args);
   } catch (err) {
-    message.channel.send('Beep boop error error').catch(logger.error);
+    message.channel.send('Beep boop error error! The mods have been notified.');
     logger.error(err.stack);
   }
 });
