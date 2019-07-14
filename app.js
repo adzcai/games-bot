@@ -13,7 +13,6 @@ require('./src/util/logger');
 require('./src/util/exitHandler');
 require('./bot');
 
-const asyncMiddleware = require('./server/asyncMiddleware');
 
 const PORT = process.env.PORT || 5000;
 const { MONGODB_URI } = process.env;
@@ -30,6 +29,7 @@ const app = express();
 /* eslint-disable import/order */
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+const asyncMiddleware = require('./server/asyncMiddleware');
 /* eslint-enable import/order */
 
 function checkAuth(req, res, next) {

@@ -8,10 +8,10 @@ module.exports = {
       noflag: true,
     },
   },
-  run: (message, args) => {
+  run(message, args) {
     fs.readFile('../../public/assets/pidigits.txt', (err, data) => {
       if (err) throw err;
-      const numdigs = parseInt(args[0]) || 5;
+      const numdigs = parseInt(args[0], 10) || 5;
       message.channel.send(data.substring(0, numdigs)).catch(logger.error);
     });
   },

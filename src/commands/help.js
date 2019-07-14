@@ -51,6 +51,6 @@ module.exports = {
       .forEach(cmd => cmds.addField(prefix + cmd.usage, cmd.desc));
 
     message.channel.send({ embed: help }).catch(logger.error);
-    message.channel.send({ embed: cmds }).catch(logger.error);
+    return message.channel.send({ embed: cmds }).catch(logger.error);
   },
 };

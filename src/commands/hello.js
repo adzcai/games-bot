@@ -27,11 +27,13 @@ module.exports = {
       noflag: true,
     },
   },
-  run: (message, args) => {
+  run(message, args) {
     let lang;
     if (args[0]) lang = args[0].charAt(0).toUpperCase() + args[0].slice(1);
 
-    if (!Object.keys(languages).includes(lang)) lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
+    if (!Object.keys(languages).includes(lang)) {
+      lang = Object.keys(languages)[Math.floor(Math.random() * Object.keys(languages).length)];
+    }
     message.channel.send(`${languages[lang]}! (${lang})`).catch(logger.error);
   },
 };

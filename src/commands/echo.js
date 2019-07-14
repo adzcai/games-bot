@@ -6,8 +6,8 @@ module.exports = {
       required: true,
     },
   },
-  run: (message, args) => {
+  run(message, args) {
     if (args.length < 1) return message.channel.send('Cannot echo an empty phrase.');
-    message.channel.send(args.join(' ')).catch(logger.error);
+    return message.channel.send(args.join(' ')).catch(logger.error);
   },
 };
