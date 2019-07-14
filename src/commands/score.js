@@ -12,7 +12,7 @@ module.exports = {
         return message.reply('Sorry, an error occurred!');
       }
 
-      return message.reply(res ? `You have ${res.score} points!` : 'You have not gotten any points yet!');
+      return message.reply(res ? `You have \`${res.score}\` points!` : 'You have not gotten any points yet!');
     });
   },
 };

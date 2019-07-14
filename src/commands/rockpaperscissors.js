@@ -1,4 +1,4 @@
-
+const incScore = require('../util/incScore');
 
 const reactions = {
   '🇷': 0,
@@ -20,14 +20,14 @@ module.exports = {
   desc: 'Plays rock paper scissors',
   async run(message) {
     if (message.mentions.members.size < 1) {
-      message.channel.send('Please ping someone to challenge them to tic tac toe!');
+      message.channel.send('Please ping someone to challenge them!');
       return;
     }
     message.channel.send('Wait for a DM to tell me your choice!').catch(logger.error);
     const players = [message.author, message.mentions.users.first()];
 
     Promise.all(players.map(async (player) => {
-      if (player.id === bot.id) {
+      if (player.id === bot.user.id) {
         return Object.values(reactions)[Math.floor(Math.random() * 3)];
       }
 
@@ -50,8 +50,17 @@ module.exports = {
       [0, 1].forEach((ind) => {
         result += `${players[ind]} chose ${words[val[ind]]}\n`;
       });
-      const p1won = results[val[0]][val[1]];
-      result += p1won ? `${(p1won === 1 ? players[0] : players[1])} won. GG!` : 'It was a draw. GG!';
+      const p1won = results[val[1]][val[0]];
+      if (!p1won) {
+        result += 'It was a draw. GG!';
+      } else {
+        const winner = p1won === 1 ? players[0] : players[1];
+        const loser = p1won === 1 ? players[1] : players[0];
+        result += `${winner} won. GG! \`+5\` points!\nToo bad, ${loser}: you lose \`3\` points. :(`;
+        incScore(winner.id, message.guild.id, 5);
+        incScore(loser.id, message.guild.id, -3);
+      }
+
       return message.channel.send(result).catch(logger.error);
     });
   },
