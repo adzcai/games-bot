@@ -7,12 +7,13 @@ const passport = require('passport');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo')(session);
 
 require('./src/util/logger');
 require('./src/util/exitHandler');
 require('./bot');
 
-const asyncMiddleware = require('./src/util/asyncMiddleware');
+const asyncMiddleware = require('./server/asyncMiddleware');
 const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;
@@ -42,6 +43,7 @@ app
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
   }))
   .use(passport.initialize())
   .use(passport.session())
@@ -56,8 +58,8 @@ app
   }))
   .get('/', (req, res) => res.render('pages/index'))
   .get('/commands', (req, res) => res.render('pages/commands', { commands }))
-  .use('/api/discord', require('./src/server/api/discord'))
-  .use('/games', checkAuth, require('./src/server/routes/games'))
+  .use('/api/discord', require('./server/api/discord'))
+  .use('/games', checkAuth, require('./server/routes/games'))
   .use((req, res) => {
     res.status(404).render('pages/error', { code: 404, message: 'The page you were looking for does not exist' });
   })
@@ -68,12 +70,12 @@ app
 
 io.on('connection', (socket) => {
   console.log(`User ${socket.id} connected`);
-  fs.readdirSync('./src/server/socketEvents').forEach((fname) => {
+  fs.readdirSync('./server/socketEvents').forEach((fname) => {
     if (!fname.endsWith('.js')) return;
     const eventName = fname.slice(0, -3);
     try {
       // eslint-disable-next-line global-require, import/no-dynamic-require
-      const cmd = require(`./src/server/socketEvents/${eventName}`);
+      const cmd = require(`./server/socketEvents/${eventName}`);
       socket.on(eventName, cmd.bind(null, socket));
     } catch (e) {
       logger.error(`Error reading event ${eventName}: `, e);

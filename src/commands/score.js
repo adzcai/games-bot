@@ -1,8 +1,8 @@
-const Score = require('../server/models/Score');
+const Score = require('../../server/models/Score');
 
 module.exports = {
   desc: 'Check your current score.',
-  run(message, args) {
+  run(message) {
     Score.findOne({
       userId: message.author.id,
       serverId: message.guild.id,
@@ -12,7 +12,7 @@ module.exports = {
         return message.reply('Sorry, an error occurred!');
       }
 
-      message.reply(res ? `You have ${res.score} points!` : 'You have not gotten any points yet!');
+      return message.reply(res ? `You have ${res.score} points!` : 'You have not gotten any points yet!');
     });
   },
 };
