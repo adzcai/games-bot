@@ -1,5 +1,5 @@
 function pruneEndedGames() {
-  Object.values(global.servers).forEach((server) => {
+  Object.values(servers).forEach((server) => {
     Object.getOwnPropertyNames(server.games).forEach((gameId) => {
       if (server.games[gameId].status === 'ended') delete server[gameId];
     });

@@ -6,9 +6,7 @@ module.exports = {
       noflag: true,
     },
   },
-  run: getAvatar,
+  run(message) {
+    message.reply((message.mentions.users.first() || message.author).avatarURL).catch(logger.error);
+  },
 };
-
-function getAvatar(message) {
-  message.reply((message.mentions.users.first() || message.author).avatarURL).catch(logger.error);
-}

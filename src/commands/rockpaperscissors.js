@@ -1,4 +1,4 @@
-
+const incScore = require('../util/incScore');
 
 const reactions = {
   '🇷': 0,
@@ -18,31 +18,50 @@ const results = [
 module.exports = {
   aliases: ['rps'],
   desc: 'Plays rock paper scissors',
-  run: rockPaperScissors,
-};
-
-async function rockPaperScissors(message) {
-  if (message.mentions.members.size < 1) return message.channel.send('Please ping someone to challenge them to tic tac toe!');
-  message.channel.send('Wait for a DM to tell me your choice').catch(logger.error);
-  const players = [message.member, message.mentions.members.first()];
-  const choices = [null, null];
-
-  await players.forEach(async (player, ind) => {
-    if (player.id === bot.id) {
-      choices[ind] = Object.values(reactions)[Math.floor(Math.random() * 3)];
+  async run(message) {
+    if (message.mentions.members.size < 1) {
+      message.channel.send('Please ping someone to challenge them!');
       return;
     }
-    const msg = await player.user.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
-    for (let i = 0; i < 3; i++) await msg.react(Object.keys(reactions)[i]);
-    const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 });
-    if (collected.size < 1) return this.sendCollectorEndedMessage().catch(logger.error);
-    player.user.send(`You chose ${reactions[collected.first().emoji.name]}.`);
-    choices[ind] = reactions[collected.first().emoji.name];
-  });
+    message.channel.send('Wait for a DM to tell me your choice!').catch(logger.error);
+    const players = [message.author, message.mentions.users.first()];
 
-  logger.info(choices);
-  let result = '';
-  [0, 1].forEach(ind => result += `${players[ind]} chose ${words[choices[ind]]}\n`);
-  const p1won = results[choices[0]][choices[1]];
-  result += p1won ? `${(p1won === 1 ? players[0] : players[1])} won. GG!` : 'It was a draw. GG!';
-}
+    Promise.all(players.map(async (player) => {
+      if (player.id === bot.user.id) {
+        return Object.values(reactions)[Math.floor(Math.random() * 3)];
+      }
+
+      const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
+      // eslint-disable-next-line no-restricted-syntax
+      for (const r of Object.keys(reactions)) {
+        // eslint-disable-next-line no-await-in-loop
+        await msg.react(r);
+      }
+
+      const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 }).catch(logger.error);
+      if (collected.size < 1) {
+        return message.channel.send('The collector timed out. Please play again!').catch(logger.error);
+      }
+
+      player.send(`You chose ${collected.first().emoji.name}.`);
+      return reactions[collected.first().emoji.name];
+    })).then((val) => {
+      let result = '';
+      [0, 1].forEach((ind) => {
+        result += `${players[ind]} chose ${words[val[ind]]}\n`;
+      });
+      const p1won = results[val[1]][val[0]];
+      if (!p1won) {
+        result += 'It was a draw. GG!';
+      } else {
+        const winner = p1won === 1 ? players[0] : players[1];
+        const loser = p1won === 1 ? players[1] : players[0];
+        result += `${winner} won. GG! \`+5\` points!\nToo bad, ${loser}: you lose \`3\` points. :(`;
+        incScore(winner.id, message.guild.id, 5);
+        incScore(loser.id, message.guild.id, -3);
+      }
+
+      return message.channel.send(result).catch(logger.error);
+    });
+  },
+};

@@ -1,3 +1,3 @@
 module.exports = (socket) => {
-  console.log(`User ${socket.id} disconnected`);
+  logger.info(`User ${socket.id} disconnected`);
 };

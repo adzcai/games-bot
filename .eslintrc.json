@@ -10,6 +10,7 @@
         "SharedArrayBuffer": "readonly",
         "logger": "readonly",
         "bot": "readonly",
+        "servers": "readonly",
         "$": "readonly",
         "io": "readonly",
         "socket": "readonly"

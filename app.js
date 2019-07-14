@@ -13,8 +13,6 @@ require('./src/util/logger');
 require('./src/util/exitHandler');
 require('./bot');
 
-const asyncMiddleware = require('./server/asyncMiddleware');
-const commands = require('./src/util/getCommands');
 
 const PORT = process.env.PORT || 5000;
 const { MONGODB_URI } = process.env;
@@ -22,15 +20,16 @@ assert(typeof MONGODB_URI !== 'undefined', 'Did you put create MONGODB_URI as an
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 mongoose.connection
-  .on('error', console.error.bind(console, 'connection error:'))
+  .on('error', logger.error.bind(logger, 'connection error:'))
   .once('open', () => {
-    console.log('connected to the database');
+    logger.info('connected to the database');
   });
 
 const app = express();
 /* eslint-disable import/order */
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+const asyncMiddleware = require('./server/asyncMiddleware');
 /* eslint-enable import/order */
 
 function checkAuth(req, res, next) {
@@ -57,7 +56,7 @@ app
     next();
   }))
   .get('/', (req, res) => res.render('pages/index'))
-  .get('/commands', (req, res) => res.render('pages/commands', { commands }))
+  .get('/commands', (req, res) => res.render('pages/commands'))
   .use('/api/discord', require('./server/api/discord'))
   .use('/games', checkAuth, require('./server/routes/games'))
   .use((req, res) => {
@@ -69,7 +68,7 @@ app
   }));
 
 io.on('connection', (socket) => {
-  console.log(`User ${socket.id} connected`);
+  logger.info(`User ${socket.id} connected`);
   fs.readdirSync('./server/socketEvents').forEach((fname) => {
     if (!fname.endsWith('.js')) return;
     const eventName = fname.slice(0, -3);
@@ -83,4 +82,4 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
+http.listen(PORT, () => logger.info(`Listening on http://localhost:${PORT}`));

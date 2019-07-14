@@ -9,7 +9,7 @@ module.exports = {
       serverId: message.guild.id,
     }, (err, res) => {
       if (err) {
-        console.error(err);
+        logger.error(err);
         return message.reply('Sorry, an error occurred!').catch(logger.info);
       }
 
