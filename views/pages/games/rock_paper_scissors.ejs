@@ -1,0 +1,33 @@
+<% include ../../partials/header.ejs %>
+
+<div class="jumbotron text-center mt-5">
+  <h1 class="display-1">Rock Paper Scissors</h1>
+
+  <form class="form-inline justify-content-center mb-3" action="" id="playRPS">
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="rpsChoices" id="rock" value="0">
+      <label class="form-check-label" for="rock">Rock</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="rpsChoices" id="paper" value="1">
+      <label class="form-check-label" for="paper">Paper</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="rpsChoices" id="scissors" value="2">
+      <label class="form-check-label" for="scissors">Scissors</label>
+    </div>
+    <button type="submit" class="btn btn-primary mb-2">Play</button>
+  </form>
+
+  <div id="result">
+    <div class="alert alert-primary" id="prompt">Choose an option above!</div>
+  </div>
+</div>
+
+<script>
+  const tag = '<%= user.user.tag %>';
+  const avatarURL = '<%= user.user.avatarURL %>';
+</script>
+<script src="/assets/js/rockPaperScissors.js"></script>
+
+<% include ../../partials/footer.ejs %>

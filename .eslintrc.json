@@ -9,7 +9,10 @@
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly",
         "logger": "readonly",
-        "bot": "readonly"
+        "bot": "readonly",
+        "$": "readonly",
+        "io": "readonly",
+        "socket": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2018,

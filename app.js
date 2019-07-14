@@ -4,6 +4,7 @@ const assert = require('assert');
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
+const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 
@@ -26,13 +27,15 @@ mongoose.connection
   });
 
 const app = express();
+/* eslint-disable import/order */
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+/* eslint-enable import/order */
 
-// function checkAuth(req, res, next) {
-//   if (req.isAuthenticated()) return next();
-//   res.status(403).send('not logged in :(');
-// }
+function checkAuth(req, res, next) {
+  if (req.isAuthenticated()) next();
+  else res.status(403).render('pages/error', { code: 403, message: 'not logged in :(' });
+}
 
 app
   .use(session({
@@ -54,24 +57,28 @@ app
   .get('/', (req, res) => res.render('pages/index'))
   .get('/commands', (req, res) => res.render('pages/commands', { commands }))
   .use('/api/discord', require('./src/server/api/discord'))
-  .use((req, res, next) => {
-    res.status(404).render('pages/404');
+  .use('/games', checkAuth, require('./src/server/routes/games'))
+  .use((req, res) => {
+    res.status(404).render('pages/error', { code: 404, message: 'The page you were looking for does not exist' });
   })
-  .use((err, req, res, next) => res.status(err.message === 'NoCodeProvided' ? 400 : 500).send({
+  .use((err, req, res) => res.status(err.message === 'NoCodeProvided' ? 400 : 500).send({
     status: 'ERROR',
     error: err.message,
   }));
 
 io.on('connection', (socket) => {
-  console.log('A user connected');
-  socket
-    .on('chat message', (msg) => {
-      console.log(msg);
-      socket.broadcast.emit('chat message', msg);
-    })
-    .on('disconnect', () => {
-      console.log('A user disconnected');
-    });
+  console.log(`User ${socket.id} connected`);
+  fs.readdirSync('./src/server/socketEvents').forEach((fname) => {
+    if (!fname.endsWith('.js')) return;
+    const eventName = fname.slice(0, -3);
+    try {
+      // eslint-disable-next-line global-require, import/no-dynamic-require
+      const cmd = require(`./src/server/socketEvents/${eventName}`);
+      socket.on(eventName, cmd.bind(null, socket));
+    } catch (e) {
+      logger.error(`Error reading event ${eventName}: `, e);
+    }
+  });
 });
 
 http.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));

@@ -13,6 +13,14 @@
       <li class="nav-item">
         <a class="nav-link" href="/commands">Commands</a>
       </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Games
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="/games/rock_paper_scissors">Rock Paper Scissors</a>
+        </div>
+      </li>
     </ul>
     
     <ul class="navbar-nav ml-auto mr-sm-2">
@@ -30,7 +38,7 @@
       <% } %>
     </ul>
 
-    <form class="form-inline mr-sm-2" action="">
+    <form class="form-inline mr-sm-2" id="sendCmd" action="">
       <input class="form-control mr-sm-2" id="cmd" placeholder="Message the bot!">
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Send</button>
     </form>
@@ -45,3 +53,5 @@
     </div>
   </div>
 </nav>
+
+<script src="/assets/js/nav.js"></script>
