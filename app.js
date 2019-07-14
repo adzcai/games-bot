@@ -22,9 +22,9 @@ assert(typeof MONGODB_URI !== 'undefined', 'Did you put create MONGODB_URI as an
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 mongoose.connection
-  .on('error', console.error.bind(console, 'connection error:'))
+  .on('error', logger.error.bind(logger, 'connection error:'))
   .once('open', () => {
-    console.log('connected to the database');
+    logger.info('connected to the database');
   });
 
 const app = express();
@@ -69,7 +69,7 @@ app
   }));
 
 io.on('connection', (socket) => {
-  console.log(`User ${socket.id} connected`);
+  logger.info(`User ${socket.id} connected`);
   fs.readdirSync('./server/socketEvents').forEach((fname) => {
     if (!fname.endsWith('.js')) return;
     const eventName = fname.slice(0, -3);
@@ -83,4 +83,4 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
+http.listen(PORT, () => logger.info(`Listening on http://localhost:${PORT}`));
