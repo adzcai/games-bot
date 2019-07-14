@@ -1,4 +1,3 @@
-const { RichEmbed } = require('discord.js');
 const Game = require('./Game.js');
 const BoardGameState = require('./BoardGameState.js');
 const AIAction = require('./AIAction.js');
@@ -45,6 +44,8 @@ class TicTacToeGame extends Game {
       '🇦': 0, '🇧': 1, '🇨': 2, '1⃣': 2, '2⃣': 1, '3⃣': 0,
     };
     this.currentState = new BoardGameState(3, 3);
+    this.pind = 0;
+    this.winnerScore = 100;
   }
 
   /**
@@ -53,136 +54,128 @@ class TicTacToeGame extends Game {
    */
   // eslint-disable-next-line consistent-return
   async init(message, args) {
-    super.init(message, args);
+    await super.init(message, args);
 
     this.humanPlayer = this.addPlayer(message.author.id, { symbol: 'X' });
 
-    if (this.multiplayer !== undefined && !this.multiplayer) {
+    if (typeof this.multiplayer !== 'undefined' && !this.multiplayer) {
       this.addPlayer(bot.user.id, { symbol: 'O' });
-      return this.start();
-    }
-
-    if (message.mentions.users.size < 1) return this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.').catch(logger.error);
-
-    const challengedMember = message.mentions.members.first();
-    if (challengedMember.user.bot || challengedMember.id === message.author.id) {
-      this.addPlayer(bot.user.id, { symbol: 'O' });
-      this.multiplayer = false;
     } else {
-      await this.prompt(`${challengedMember}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`, ['👍'], challengedMember.id);
-      if (this.status !== 'ended') {
-        this.addPlayer(challengedMember.id, { symbol: 'O' });
-        this.multiplayer = true;
+      if (message.mentions.users.size < 1) {
+        this.status = 'ended';
+        this.channel.send('Please mention someone to challenge to Tic Tac Toe, or type .ttt s to play singleplayer.');
+        return;
+      }
+
+      const challengedMember = message.mentions.members.first();
+      if (challengedMember.user.bot || challengedMember.id === message.author.id) {
+        this.addPlayer(bot.user.id, { symbol: 'O' });
+        this.multiplayer = false;
+      } else {
+        await this.prompt(`${challengedMember}, you have been challenged to play Tic Tac Toe! Tap 👍 to accept.`, ['👍'], challengedMember.id);
+        if (this.status !== 'ended') {
+          this.addPlayer(challengedMember.id, { symbol: 'O' });
+          this.multiplayer = true;
+        }
       }
     }
 
-    this.start();
-  }
+    if (!this.multiplayer) {
+      if (typeof this.difficulty === 'undefined') {
+        const collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
+        if (!collected) return;
+        this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
+      }
+    }
 
-  async start() {
-    if (!this.multiplayer) await this.setDifficulty();
-    await this.setP1GoesFirst();
-    this.boardMessage = await this.channel.send({ embed: this.boardEmbed() });
-    if (!this.multiplayer
-      && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) this.aiMove();
-    await this.resetReactions();
-    this.resetCollector();
-  }
-
-  async setDifficulty(difficulty) {
-    let collected;
-    if (typeof difficulty === 'undefined') collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
-    this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
-  }
-
-  async setP1GoesFirst(p1GoesFirst) {
-    let collected;
-    if (typeof p1GoesFirst === 'undefined') collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.humanPlayer.id);
-
-    this.currentPlayer = this.humanPlayer;
-    if (!collected.has('1⃣')) this.switchPlayer();
+    if (typeof this.p1GoesFirst === 'undefined') {
+      const collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.humanPlayer.id);
+      if (!collected) return;
+      if (!collected.has('1⃣')) this.switchPlayer();
+    }
 
     this.currentState.currentPlayerSymbol = this.currentPlayer.symbol;
-    this.channel.send(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`);
+    this.updateGameEmbed();
+
+    // If it's the bot's turn, we get it to move, otherwise we prompt the user for their first move
+    if (!this.multiplayer
+      && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) this.aiMove();
+    this.move();
   }
 
-  async resetReactions(msg = this.boardMessage, emojis = Object.keys(this.reactions)) {
-    await msg.clearReactions().catch(logger.error);
-    // eslint-disable-next-line no-await-in-loop
-    for (const emoji of emojis) await msg.react(emoji);
-  }
-
-  areReactionsReset(msg = this.boardMessage, reactions = Object.keys(this.reactions)) {
+  areReactionsReset(msg = this.gameEmbedMessage, reactions = Object.keys(this.reactions)) {
     const reactedEmojis = msg.reactions.map(re => re.emoji.name);
     return (reactions.every(emoji => reactedEmojis.includes(emoji)));
   }
 
-  resetCollector() {
+  async move() {
     const { id } = this.currentPlayer;
-    const reactionFilter = (r, emoji) => r.message.reactions.get(emoji).users.has(id);
 
-    this.collector = this.boardMessage.createReactionCollector((r) => {
-      if (this.status !== 'running') return false;
-      if (this.currentPlayer.id === bot.user.id) return false;
-      if (!this.areReactionsReset(r.message)) return false;
-      const rowSelected = ['1⃣', '2⃣', '3⃣'].some(row => reactionFilter(r, row));
-      const colSelected = ['🇦', '🇧', '🇨'].some(col => reactionFilter(r, col));
-      return rowSelected && colSelected;
-    }, { time: 5 * 60 * 1000 });
+    let row = '';
+    let col = '';
 
-    this.collector.on('collect', (r) => {
-      const row = this.reactions[['1⃣', '2⃣', '3⃣'].filter(rw => reactionFilter(r, rw))[0]];
-      const col = this.reactions[['🇦', '🇧', '🇨'].filter(cl => reactionFilter(r, cl))[0]];
+    const filter = (r, user) => {
+      if (this.status !== 'running' || user.id !== id) return false;
+      if (['1⃣', '2⃣', '3⃣'].includes(r.emoji.name)) row = r.emoji.name;
+      if (['🇦', '🇧', '🇨'].includes(r.emoji.name)) col = r.emoji.name;
+      return row && col;
+    };
 
-      const ind = row * 3 + col;
-      if (this.currentState.contents[ind] !== ' ') return this.channel.send('That is not a valid move!').catch(logger.error);
+    const collected = await this.prompt(`${this.currentPlayer.user}, your turn! React with the coordinates of the square you want to move in, e.x. "🇧2⃣".`, Object.keys(this.reactions), id, filter);
 
-      const next = new BoardGameState(this.currentState);
-      next.insert(ind, this.currentState.currentPlayerSymbol);
-      next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
-      this.advanceTo(next);
+    if (!collected) {
+      this.status = 'ended';
+      return this.channel.send('The collector timed out. Please play again!');
+    }
 
-      if (!this.multiplayer
-        && !(this.currentState.currentPlayerSymbol === this.humanPlayer.symbol)) this.aiMove();
+    row = this.reactions[row];
+    col = this.reactions[col];
 
-      return this.resetReactions();
-    });
+    const ind = row * 3 + col;
+    if (this.currentState.contents[ind] !== ' ') {
+      this.channel.send('```diff\n- THAT IS NOT A VALID MOVE!\n```').then(msg => msg.delete(5 * 1000));
+      // We prompt the user again
+      return this.move();
+    }
 
-    this.collector.on('end', (collected, reason) => {
-      if (reason === 'game over') return;
-      this.sendCollectorEndedMessage(reason);
-    });
+    const next = new BoardGameState(this.currentState);
+    next.insert(ind, this.currentState.currentPlayerSymbol);
+    next.currentPlayerSymbol = switchSymbol(next.currentPlayerSymbol);
+    return this.advanceTo(next);
   }
 
   switchPlayer() {
-    const playerIDs = Object.keys(this.players);
-    playerIDs.splice(playerIDs.indexOf(this.currentPlayer.id), 1);
-    this.currentPlayer = Object.assign({}, this.players[playerIDs[0]]);
+    this.p1 = !this.p1;
   }
 
-  boardEmbed() {
-    const embed = new RichEmbed()
-      .setTimestamp()
-      .setTitle('Tic Tac Toe')
-      .addField('Players', `${this.players.map(p => `${p.user} (${p.symbol})`).join(' vs ')}`)
+  get currentPlayer() {
+    return this.players.get(this.players.keyArray()[Number(this.pind)]);
+  }
+
+  get gameEmbed() {
+    return (super.gameEmbed
+      .addField('Difficulty', [null, 'easy', 'medium', 'hard'][this.difficulty])
       .addField('Grid', this.currentState.grid())
-      .setFooter('Type ".ttt help" to get help about this function.');
-    return embed;
+    );
   }
 
   advanceTo(state) {
     this.currentState = state;
-    this.boardMessage.edit({ embed: this.boardEmbed() });
+    this.updateGameEmbed();
     const term = this.currentState.isTerminal();
     this.currentState.result = term || 'running';
     this.switchPlayer();
     if (/(?:X|O)-won|draw/i.test(this.currentState.result)) {
       this.status = 'ended';
-      this.channel.send(`${this.currentPlayer} won! GG`).catch(logger.error);
-      this.collector.stop('game over');
-      this.boardMessage.clearReactions();
-      this.end();
+      this.channel.send(`${this.currentPlayer.user} won! GG. \`+100\` points!`);
+      this.gameEmbedMessage.clearReactions();
+      this.end('', { winner: this.currentPlayer.user.id });
     }
+
+    // If this is singleplayer
+    if (!this.multiplayer && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) {
+      this.aiMove();
+    } else this.move();
   }
 
   aiMove() {

@@ -1,5 +1,5 @@
 const { RichEmbed, Collection } = require('discord.js');
-
+const incScore = require('../util/incScore');
 /*
  * This is the parent class for all games in the program.
  * Javascript does not support abstract classes, but this class should never
@@ -13,18 +13,31 @@ class Game {
     this.name = name;
     this.players = new Collection();
     this.status = 'beginning';
+    this.winnerScore = 0;
   }
 
-  init(message, args) {
+  async init(message, args) {
     this.status = 'running';
-    this.gameEmbed = new RichEmbed().setTitle(this.name);
-    this.channel.send(this.gameEmbed);
+    this.gameEmbedMessage = await this.channel.send(this.gameEmbed);
     const opts = Object.getOwnPropertyNames(bot.commands.get(this.command).options);
     for (let i = 0; i < args.length; i += 1) {
       if (opts.includes(args[i])) {
         bot.commands.get(this.command).options[args[i]].action.call(this, message, i, args);
       }
     }
+  }
+
+  get gameEmbed() {
+    const embed = new RichEmbed()
+      .setTitle(this.name)
+      .addField('Players', `${this.players.map(p => `${p.user} (${p.symbol})`).join(' vs ') || 'none'}`)
+      .setFooter(`Type "${process.env.DEFAULT_PREFIX || '.'}${this.command} help" to get help about this function.`)
+      .setTimestamp();
+    return embed;
+  }
+
+  updateGameEmbed() {
+    this.gameEmbedMessage.edit({ embed: this.gameEmbed });
   }
 
   addPlayer(userId, otherProperties) {
@@ -34,6 +47,7 @@ class Game {
       playing: true,
     }, otherProperties));
 
+    this.updateGameEmbed();
     // Adds this game's ID to the player's list of games
     return this.players.get(userId);
   }
@@ -44,29 +58,45 @@ class Game {
    * @param {*} reactions options that the user can click.
    * @param {*} id the id of the user that is expected to respond.
    */
-  async prompt(str, reactions, id) {
-    const msg = await this.channel.send(str).catch(logger.error);
-    // eslint-disable-next-line no-await-in-loop
-    for (const r of reactions) await msg.react(r);
+  async prompt(str, reactions, id, filter) {
+    const msg = await this.channel.send(str);
+    await this.gameEmbedMessage.clearReactions();
 
-    const collected = await msg.awaitReactions(
-      (r, user) => reactions.includes(r.emoji.name) && user.id === id,
-      { maxUsers: 1, time: 60 * 1000 },
-    );
+    const [, collected] = await Promise.all([
+      (async () => {
+        // eslint-disable-next-line no-await-in-loop
+        for (const r of reactions) await this.gameEmbedMessage.react(r);
+      })(),
+      (async () => this.gameEmbedMessage.awaitReactions(
+        filter || ((r, user) => reactions.includes(r.emoji.name) && user.id === id),
+        { maxUsers: 1, time: 60 * 1000 },
+      ))(),
+    ]);
+
+    await msg.delete();
+
     if (collected.size < 1) {
       this.status = 'ended';
-      this.end(`Collector timed out. Your game has been cancelled. Type ${process.env.DEFAULT_PREFIX || '.'}${this.command} to start a new one.`);
+      this.end('Collector timed out.');
+      return false;
     }
+
+    await this.gameEmbedMessage.clearReactions();
     return collected;
   }
 
   /**
    * Marks the game for removal by the bot.
    * @param {*} message an optional message to add.
+   * @param {object} options options to pass.
+   * @param {string} options.winner the winner
    */
-  async end(message) {
+  end(message, options = {}) {
     this.status = 'ended';
-    await this.channel.send(`${message || ''}${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.name} games have ended.`).catch(logger.error);
+    this.channel.send(`${message ? `${message}\n` : ''}${this.players.map(p => p.user).join(', ')}, your ${this.name} games have ended. Type ${process.env.DEFAULT_PREFIX || '.'}${this.command} to start a new one.`);
+    if (options.winner && this.winnerScore) {
+      incScore(options.winner, this.channel.guild.id, this.winnerScore);
+    }
   }
 }
 
@@ -90,7 +120,7 @@ class Game {
 //         aliases: ['v'],
 //         usage: 'Resends the game board',
 //         action: async function () {
-//             const msg = await this.channel.send({embed: this.boardEmbed()}).catch(logger.error);
+//             const msg = await this.channel.send({embed: this.boardEmbed()});
 //             this.boardMessage = msg;
 //         }
 //     }

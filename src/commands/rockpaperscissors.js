@@ -53,9 +53,9 @@ module.exports = {
       } else {
         const winner = p1won === 1 ? players[0] : players[1];
         const loser = p1won === 1 ? players[1] : players[0];
-        result += `${winner} won. GG! \`+5\` points!\nToo bad, ${loser}: you lose \`3\` points. :(`;
-        incScore(winner.id, message.guild.id, 5);
-        incScore(loser.id, message.guild.id, -3);
+        result += `${winner} won. GG! \`+10\` points!\nToo bad, ${loser}: you lose \`5\` points. :(`;
+        incScore(winner.id, message.guild.id, 10);
+        incScore(loser.id, message.guild.id, -5);
       }
 
       return message.channel.send(result);

@@ -10,10 +10,10 @@ module.exports = {
     }, { $inc: { score: 1 } }, { upsert: true }, (err) => {
       if (err) {
         logger.error(err);
-        return message.reply('Sorry, an error occurred!').catch(logger.info);
+        return message.reply('Sorry, an error occurred!');
       }
 
-      return message.reply('You just gained `1` point!').catch(logger.info);
+      return message.reply('You just gained `1` point!');
     });
   },
 };

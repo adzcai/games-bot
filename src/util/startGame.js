@@ -7,7 +7,7 @@
  */
 async function startGame(message, args, GameClass) {
   const game = bot.games.find(
-    g => g.playerIds.includes(message.author.id) && g.command === GameClass.command,
+    g => g.players.has(message.author.id) && g.command === GameClass.command,
   );
 
   // If the player is already in a game, see if they call any arguments
@@ -19,7 +19,7 @@ async function startGame(message, args, GameClass) {
         return true;
       });
     if (!argsPassed) {
-      game.channel.send(`You are already in a game! Type ${process.env.DEFAULT_PREFIX}${game.command} view to resend the message.`).catch(logger.error);
+      game.channel.send(`You are already in a game! Type ${process.env.DEFAULT_PREFIX}${game.command} view to resend the message.`);
     }
     return;
   }

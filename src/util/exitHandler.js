@@ -4,7 +4,8 @@ function pruneEndedGames() {
   });
 }
 
-const handle = setInterval(pruneEndedGames, 60 * 1000);
+// We get rid of ended games every 5 seconds
+const handle = setInterval(pruneEndedGames, 5 * 1000);
 
 /*
  * This exit handler simply makes sure the program terminates gracefully when
