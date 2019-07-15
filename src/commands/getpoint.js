@@ -1,19 +1,12 @@
-const Score = require('../../server/models/Score');
+const incScore = require('../util/incScore');
 
 module.exports = {
   desc: 'Please don\'t spam this TOO much.',
   aliases: ['pt'],
   run(message) {
-    Score.findOneAndUpdate({
-      userId: message.author.id,
-      serverId: message.guild.id,
-    }, { $inc: { score: 1 } }, { upsert: true }, (err) => {
-      if (err) {
-        logger.error(err);
-        return message.reply('Sorry, an error occurred!');
-      }
-
-      return message.reply('You just gained `1` point!');
+    incScore(message.author.id, message.guild.id, 1, (err) => {
+      if (err) message.reply('Sorry, an error occurred!');
+      else message.reply('You just gained `1` point!');
     });
   },
 };
