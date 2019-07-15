@@ -15,10 +15,10 @@ require('./bot');
 
 
 const PORT = process.env.PORT || 5000;
-const { MONGODB_URI } = process.env;
+const MONGODB_URI = process.env.NODE_ENV === 'local' ? 'mongodb://localhost/gamesBot' : process.env.MONGODB_URI;
 assert(typeof MONGODB_URI !== 'undefined', 'Did you put create MONGODB_URI as an environment variable?');
 
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useFindAndModify: false });
 mongoose.connection
   .on('error', logger.error.bind(logger, 'connection error:'))
   .once('open', () => {

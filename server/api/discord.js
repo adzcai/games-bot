@@ -10,7 +10,7 @@ const scopes = ['identify', 'guilds', 'guilds.join'];
 passport.use(new Strategy({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: process.env.ENV === 'local' ? `http://localhost:${process.env.PORT || 5000}/api/discord/callback` : 'https://thepiguy-games-bot.herokuapp.com/api/discord/callback',
+  callbackURL: process.env.NODE_ENV === 'local' ? `http://localhost:${process.env.PORT || 5000}/api/discord/callback` : 'https://thepiguy-games-bot.herokuapp.com/api/discord/callback',
   scope: scopes,
 }, (accessToken, refreshToken, profile, done) => {
   process.nextTick(() => done(null, profile));

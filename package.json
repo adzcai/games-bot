@@ -5,6 +5,7 @@
   "main": "bot.js",
   "scripts": {
     "start": "node app.js",
+    "debug": "concurrently \"mongod\" \"nodemon app.js -V --watch src --watch server\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --ignore-path .gitignore",
     "log": "git log --all --decorate --oneline --graph"
@@ -52,6 +53,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "concurrently": "^4.1.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.0"
