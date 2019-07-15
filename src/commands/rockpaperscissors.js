@@ -19,7 +19,8 @@ module.exports = {
   aliases: ['rps'],
   desc: 'Plays rock paper scissors',
   async run(message) {
-    if (message.mentions.members.size < 1) {
+    if (message.mentions.members.size < 1
+      || message.mentions.users.first().id === message.author.id) {
       message.channel.send('Please ping someone to challenge them!');
       return;
     }
