@@ -30,7 +30,6 @@ class Game {
   get gameEmbed() {
     const embed = new RichEmbed()
       .setTitle(this.name)
-      .addField('Players', `${this.players.map(p => `${p.user} (${p.symbol})`).join(' vs ') || 'none'}`)
       .setFooter(`Type "${process.env.DEFAULT_PREFIX || '.'}${this.command} help" to get help about this function.`)
       .setTimestamp();
     return embed;
@@ -58,7 +57,7 @@ class Game {
    * @param {*} reactions options that the user can click.
    * @param {*} id the id of the user that is expected to respond.
    */
-  async prompt(str, reactions, id, filter) {
+  async prompt(str, reactions, id, filter, options) {
     const msg = await this.channel.send(str);
     await this.gameEmbedMessage.clearReactions();
 
@@ -69,7 +68,7 @@ class Game {
       })(),
       (async () => this.gameEmbedMessage.awaitReactions(
         filter || ((r, user) => reactions.includes(r.emoji.name) && user.id === id),
-        { maxUsers: 1, time: 60 * 1000 },
+        options || { maxUsers: 1, time: 60 * 1000 },
       ))(),
     ]);
 

@@ -46,6 +46,7 @@ class TicTacToeGame extends Game {
     this.currentState = new BoardGameState(3, 3);
     this.pind = 0;
     this.winnerScore = 100;
+    this.multiplayer = true;
   }
 
   /**
@@ -58,8 +59,13 @@ class TicTacToeGame extends Game {
 
     this.humanPlayer = this.addPlayer(message.author.id, { symbol: 'X' });
 
-    if (typeof this.multiplayer !== 'undefined' && !this.multiplayer) {
+    if (this.singleplayer) {
       this.addPlayer(bot.user.id, { symbol: 'O' });
+      if (typeof this.difficulty === 'undefined') {
+        const collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
+        if (!collected) return;
+        this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
+      }
     } else {
       if (message.mentions.users.size < 1) {
         this.status = 'ended';
@@ -80,14 +86,6 @@ class TicTacToeGame extends Game {
       }
     }
 
-    if (!this.multiplayer) {
-      if (typeof this.difficulty === 'undefined') {
-        const collected = await this.prompt('Don\'t worry, I don\'t have friends either. Do you want me to go 🇪asy, 🇲edium, or 🇭ard?', ['🇪', '🇲', '🇭'], this.humanPlayer.id);
-        if (!collected) return;
-        this.difficulty = { '🇪': 1, '🇲': 2, '🇭': 3 }[collected.first().emoji.name];
-      }
-    }
-
     if (typeof this.p1GoesFirst === 'undefined') {
       const collected = await this.prompt('Do you want to go first or second?', ['1⃣', '2⃣'], this.humanPlayer.id);
       if (!collected) return;
@@ -98,7 +96,7 @@ class TicTacToeGame extends Game {
     this.updateGameEmbed();
 
     // If it's the bot's turn, we get it to move, otherwise we prompt the user for their first move
-    if (!this.multiplayer
+    if (this.singleplayer
       && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) this.aiMove();
     this.move();
   }
@@ -106,6 +104,10 @@ class TicTacToeGame extends Game {
   areReactionsReset(msg = this.gameEmbedMessage, reactions = Object.keys(this.reactions)) {
     const reactedEmojis = msg.reactions.map(re => re.emoji.name);
     return (reactions.every(emoji => reactedEmojis.includes(emoji)));
+  }
+
+  get singleplayer() {
+    return !this.multiplayer;
   }
 
   async move() {
@@ -154,6 +156,7 @@ class TicTacToeGame extends Game {
 
   get gameEmbed() {
     return (super.gameEmbed
+      .addField('Players', `${this.players.map(p => `${p.user} (${p.symbol})`).join(' vs ') || 'none'}`)
       .addField('Difficulty', [null, 'easy', 'medium', 'hard'][this.difficulty])
       .addField('Grid', this.currentState.grid())
     );
@@ -172,8 +175,7 @@ class TicTacToeGame extends Game {
       this.end('', { winner: this.currentPlayer.user.id });
     }
 
-    // If this is singleplayer
-    if (!this.multiplayer && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) {
+    if (this.singleplayer && this.currentState.currentPlayerSymbol !== this.humanPlayer.symbol) {
       this.aiMove();
     } else this.move();
   }

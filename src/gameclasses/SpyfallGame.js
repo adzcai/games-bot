@@ -6,72 +6,128 @@ const locations = [
   ['Race Track', 'Art Museum', 'Vineyard', 'Baseball Stadium', 'Library', 'Cat Show', 'Retirement Home', 'Jail', 'Construction Site', 'The United Nations', 'Candy Factory', 'Subway', 'Coal Mine', 'Cemetery', 'Rock Concert', 'Jazz Club', 'Wedding', 'Gas Station', 'Harbor Docks', 'Sightseeing Bus'],
 ];
 
-// function getVersion (args) {
-//     for (let i = 0; i < args.length; i++) {
-//         if (['version', 'v'].includes(args[i])) {
-//             let version = args[i + 1];
-//             if (!version) return undefined;
-//             if (['1', '2', 'both'].includes(version))
-//                 return version;
-//             return undefined;
-//         }
-//     }
-// }
+const timeBenchmarks = [5, 10, 30, 60, 120];
+
+const options = {
+  version: {
+    short: 'v',
+    desc: 'Specify which version of the game you want to play: 1, 2, or 3.',
+    action(m, ind, args) {
+      this.version = parseInt(args[ind + 1], 10) || 1;
+    },
+  },
+};
+
+function milliToMinsSecs(milli) {
+  return [(`0${Math.floor(milli / 1000 / 60)}`).slice(-2), (`0${Math.floor((milli / 1000) % 60)}`).slice(-2)];
+}
 
 class SpyfallGame extends Game {
-  constructor(id, channel, version = '1', time = 8 * 60 * 1000) {
-    super(id, channel, 'spyfall', {
-      description: 'Play Spyfall with a group of friends!',
-    });
-
-    this.gameTime = time;
-    if (version === '1') this.locations = locations[0];
-    else if (version === '2') this.locations = locations[1];
-    else if (version === '3') this.locations = locations[0].concat(locations[1]);
-    else throw new Error('That is not a valid version');
+  constructor(id, channel) {
+    super(id, channel, 'spyfall', 'Spyfall');
   }
 
-  async start(pIDs) {
-    this.status = 'running';
-    this.spyID = pIDs[Math.floor(Math.random() * pIDs.length)];
-    for (const id of pIDs) this.addPlayer(id, { isSpy: id === this.spyID, scratched: [] });
+  async init(message, args) {
+    await super.init(message, args);
 
-    Object.values(this.players).forEach(async (player) => {
+    this.version = this.version || '1';
+    this.gameTime = 8 * 60 * 1000;
+    this.remaining = this.gameTime;
+    if (this.version === '1') [this.locations] = locations;
+    else if (this.version === '2') [, this.locations] = locations;
+    else if (this.version === '3') this.locations = locations[0].concat(locations[1]);
+
+    this.benchmarks = timeBenchmarks;
+    // eslint-disable-next-line no-continue
+    while (this.benchmarks[this.benchmarks.length - 1] > this.gameTime) this.benchmarks.pop();
+
+    this.addPlayer(message.author.id, { isSpy: false, scratched: [] });
+    const prmpt = await this.channel.send(`Tap the button to join the game! ${message.author}, tap the flag whenever you're ready to begin.`);
+    const collector = prmpt.createReactionCollector(
+      (r, user) => (r.emoji.name === '🤝' && !user.bot) || (r.emoji.name === '🚩' && user.id === message.author.id),
+      { time: 5 * 60 * 1000 },
+    );
+
+    collector.on('collect', (reaction) => {
+      if (reaction.emoji.name === '🚩') collector.stop();
+      else {
+        const playerIds = reaction.users.filter(user => !user.bot).keyArray();
+        if (!playerIds.includes(message.author.id)) playerIds.push(message.author.id);
+        this.players.clear();
+        playerIds.forEach((id) => {
+          this.addPlayer(id, { isSpy: false, scratched: [] });
+        });
+        this.updateGameEmbed();
+      }
+    });
+
+    collector.on('end', () => this.start());
+
+    bot.on('messageReactionRemove', (reaction, user) => {
+      if (reaction.emoji.name === '🤝' && reaction.message.id === prmpt.id) this.players.delete(user.id);
+      this.updateGameEmbed();
+    });
+
+    await prmpt.react('🤝');
+    await prmpt.react('🚩');
+  }
+
+  start() {
+    this.spy = this.players.random();
+    this.spy.isSpy = true;
+    this.location = this.locations[Math.floor(Math.random() * this.locations.length)];
+
+    this.players.forEach(async (player) => {
       player.message = await player.user.send({ embed: this.locationEmbed(player) });
-      player.collector = player.user.dmChannel.createMessageCollector(m => (parseInt(m.content) > 0) && (parseInt(m.content) <= this.locations.length), { time: this.gameTime });
+      player.collector = player.user.dmChannel.createMessageCollector(
+        m => (parseInt(m.content, 10) > 0) && (parseInt(m.content, 10) <= this.locations.length),
+        { time: this.gameTime },
+      );
 
       player.collector.on('collect', (msg) => {
-        const toScratch = parseInt(msg) - 1;
-        if (player.scratched.includes(toScratch)) player.scratched.splice(player.scratched.indexOf(toScratch), 1);
-        else player.scratched.push(toScratch);
+        const toScratch = parseInt(msg, 10) - 1;
+        if (player.scratched.includes(toScratch)) {
+          player.scratched.splice(player.scratched.indexOf(toScratch), 1);
+        } else player.scratched.push(toScratch);
         player.message.edit({ embed: this.locationEmbed(player) });
       });
     });
 
     this.startingTime = new Date().getTime();
-    this.boardMessage = await this.channel.send(`Time remaining: ${this.gameTime}`);
     bot.setInterval(() => {
-      const remaining = this.gameTime - (new Date().getTime() - this.startingTime);
-      if (remaining <= 0) return this.boardMessage.edit('Time\'s up!');
-      const minutes = Math.floor(remaining / 1000 / 60);
-      const seconds = Math.floor((remaining / 1000) % 60);
-      const embed = new RichEmbed()
-        .setTitle('Spyfall')
-        .setDescription(`Time remaining: ${minutes}:${seconds}`)
-        .addField('Players', Object.values(this.players).map(p => p.user).join('\n'))
-        .setFooter(`Type .help spyfall to get help about the game. Game ID: ${this.id}`)
-        .setTimestamp();
-      this.boardMessage.edit({ embed });
+      this.remaining = this.gameTime - (new Date().getTime() - this.startingTime);
+      const [mins, secs] = milliToMinsSecs(this.remaining);
+      this.players.forEach(player => player.user.send(`${mins && `${mins} minutes and `}${secs && `${secs} seconds`} remaining!`));
+      this.updateGameEmbed();
     }, 5000);
+  }
+
+  get gameEmbed() {
+    const [mins, secs] = milliToMinsSecs(this.remaining);
+
+    return (super.gameEmbed
+      .setDescription(this.remaining <= 0 ? 'Time\'s up!' : `Time remaining: ${`${mins}:${secs}`}`)
+      .addField('Players', `${this.players.map(p => `- ${p.user}`).join('\n') || 'none'}`)
+      .setFooter(`Type .help spyfall to get help about the game. Game ID: ${this.id}`));
   }
 
   locationEmbed(player) {
     const embed = new RichEmbed()
-      .setTitle(`You are ${player.isSpy ? '' : '**not**'} the spy!`)
-      .addField('Location Reference', this.locations.map((loc, ind) => `${player.scratched.includes(ind) ? '~~' : ''}[${ind + 1}] ${loc}${player.scratched.includes(ind) ? '~~' : ''}`))
-      .setFooter('To cross /un-cross out a location, type its number.');
+      .setTitle(`You are ${player.isSpy ? '' : '**not** '}the spy!`);
+    if (!player.isSpy) embed.addField('The location is:', this.location);
+    embed
+      .addField('Location Reference', this.locations.map((loc, ind) => {
+        const strike = player.scratched.includes(ind) ? '~~' : '';
+        return `${strike}[${ind + 1}] ${loc}${strike}`;
+      }))
+      .setFooter('To cross/un-cross out a location, type its number.');
     return embed;
   }
 }
 
-module.exports = SpyfallGame;
+module.exports = {
+  cmd: 'spyfall',
+  desc: 'Play Spyfall with a group of friends!',
+  options,
+  gameClass: SpyfallGame,
+};

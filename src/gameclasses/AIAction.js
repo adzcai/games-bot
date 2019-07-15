@@ -5,7 +5,7 @@ class AIAction {
     this.movePosition = pos;
     this.minimaxVal = 0;
   }
-  
+
   /**
    * Applies a move to a given state and returns the new state
    * @param {*} state the current state
@@ -40,7 +40,7 @@ AIAction.DESCENDING = (firstAction, secondAction) => {
  * Basically, if the next player is human we want to minimize the value,
  * and if it is the AI we want to maximize the value.
  */
-AIAction.minimaxValue = function (state, humanPlayerSymbol) {
+AIAction.minimaxValue = function minimaxValue(state, humanPlayerSymbol) {
   const term = state.board.isTerminal();
   if (term) {
     state.result = term || 'running';
