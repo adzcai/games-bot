@@ -13,11 +13,10 @@ module.exports = (userId, serverId, score, cb) => {
         serverId,
         score,
       });
-
-      newScore.save().catch(e => cb(e));
+      newScore.save().then(val => cb(null, val)).catch(e => cb(e));
     } else {
       res.score += score;
-      res.save().catch(e => cb(e));
+      res.save().then(val => cb(null, val)).catch(e => cb(e));
     }
   });
 };

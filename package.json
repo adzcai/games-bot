@@ -5,7 +5,7 @@
   "main": "bot.js",
   "scripts": {
     "start": "node app.js",
-    "debug": "concurrently \"mongod\" \"nodemon app.js -V --watch src --watch server\"",
+    "debug": "concurrently \"mongod\" \"nodemon app.js --watch src --watch server\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --fix --ignore-path .gitignore",
     "log": "git log --all --decorate --oneline --graph"
