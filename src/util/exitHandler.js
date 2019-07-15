@@ -27,5 +27,6 @@ process.on('SIGUSR2', exitHandler);
  * error occurs
  */
 process.setUncaughtExceptionCaptureCallback((err) => {
-  logger.error(`An error occurred. ${(err.stack)}`);
+  logger.error('An uncaught exception occurred:');
+  logger.err(err.stack);
 });

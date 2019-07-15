@@ -16,6 +16,11 @@ logger.info('Initializing client');
 global.bot = new Client();
 bot.commands = new Collection();
 bot.games = new Collection();
+bot.error = (message, err) => {
+  message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR\n\`\`\`\n\`\`\`${err}\`\`\``);
+  logger.error('BEEP BOOP ERROR ERROR');
+  logger.error(err.stack);
+};
 
 Object.keys(commands).forEach((cmd) => {
   bot.commands.set(cmd, commands[cmd]);
@@ -37,11 +42,11 @@ bot.on('ready', () => {
  * server, it will run the command they type.
  */
 let args; let cmd;
-bot.on('message', async (message) => {
+bot.on('message', (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
 
-  if (!(message.content.indexOf(prefix) === 0)) return;
+  if (message.content.indexOf(prefix) !== 0) return;
 
   args = message.content.substring(1).split(' ');
   cmd = args.shift();
@@ -55,8 +60,7 @@ bot.on('message', async (message) => {
     logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     bot.commands.get(cmd).run(message, args);
   } catch (err) {
-    message.channel.send('Beep boop error error! The mods have been notified.');
-    logger.error(err.stack);
+    bot.error(message, err);
   }
 });
 
