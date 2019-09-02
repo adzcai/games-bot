@@ -6,16 +6,16 @@ class AIAction {
     this.minimaxVal = 0;
   }
 
-  /*
- * Applies a move to a given state and returns the new state
- */
+  /**
+   * Applies a move to a given state and returns the new state
+   * @param {*} state the current state
+   * @param {*} botSymbol
+   */
   applyTo(state, botSymbol) {
     const next = new BoardGameState(state);
-    const temp = next.board.contents.slice();
-    temp[this.movePosition] = state.currentPlayerSymbol;
-    next.board.contents = temp;
+    next.insert(this.movePosition, state.currentPlayerSymbol);
 
-    if (next.currentPlayerSymbol === botSymbol) next.aiMovesCount++;
+    if (next.currentPlayerSymbol === botSymbol) next.aiMovesCount += 1;
     next.currentPlayerSymbol = (next.currentPlayerSymbol === 'X') ? 'O' : 'X';
 
     return next;
@@ -40,7 +40,7 @@ AIAction.DESCENDING = (firstAction, secondAction) => {
  * Basically, if the next player is human we want to minimize the value,
  * and if it is the AI we want to maximize the value.
  */
-AIAction.minimaxValue = function (state, humanPlayerSymbol) {
+AIAction.minimaxValue = function minimaxValue(state, humanPlayerSymbol) {
   const term = state.board.isTerminal();
   if (term) {
     state.result = term || 'running';

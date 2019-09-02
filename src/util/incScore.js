@@ -1,26 +1,22 @@
 const Score = require('../../server/models/Score');
 
-module.exports = (userId, serverId, score) => {
+module.exports = (userId, serverId, score, cb) => {
   Score.findOne({
     userId,
     serverId,
   }, (err, res) => {
     if (err) {
-      logger.error(err);
-      return;
-    }
-
-    if (!res) {
+      cb(err);
+    } else if (!res) {
       const newScore = new Score({
         userId,
         serverId,
         score,
       });
-
-      newScore.save().catch(logger.error);
+      newScore.save().then(val => cb(null, val)).catch(e => cb(e));
     } else {
       res.score += score;
-      res.save().catch(logger.error);
+      res.save().then(val => cb(null, val)).catch(e => cb(e));
     }
   });
 };

@@ -26,7 +26,7 @@ class CoupGame extends Game {
 function createCourtDeck() {
   const deck = [];
   Object.values(CoupGame.cards).forEach((card) => {
-    for (let i = 0; i < 3; i++) deck.push(Object.assign({}, card));
+    for (let i = 0; i < 3; i += 1) deck.push(Object.assign({}, card));
   });
   return shuffle(deck);
 }
@@ -34,7 +34,7 @@ function createCourtDeck() {
 function promptMove(player) {
   const user = bot.users.get(player.id);
   let options = 'Which action would you like to take?';
-  for (let i = 0; i < Object.keys(CoupGame.actions).length; i++) options += `[${i + 1}] ${Object.keys(CoupGame.actions)[i]} (${Object.values(CoupGame.actions)[i].effect})\n`;
+  for (let i = 0; i < Object.keys(CoupGame.actions).length; i += 1) options += `[${i + 1}] ${Object.keys(CoupGame.actions)[i]} (${Object.values(CoupGame.actions)[i].effect})\n`;
 
   const embed = new RichEmbed()
     .setTitle('It\'s your turn!')
@@ -43,8 +43,8 @@ function promptMove(player) {
   user.send({ embed });
   const collector = user.dmChannel.createMessageCollector(m => /^[1-7]$/.test(m.content));
   collector.on('collect', (m) => {
-    const action = Object.values(CoupGame.actions)[parseInt(m) - 1];
-    player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`).catch(logger.error);
+    const action = Object.values(CoupGame.actions)[parseInt(m, 10) - 1];
+    player.game.channel.send(`${player.user} is using ${action.name}. Type 'challenge' if you would like to challenge them.`);
   });
 }
 

@@ -1,23 +1,24 @@
-
-
+const { RichEmbed, Collection } = require('discord.js');
+const incScore = require('../util/incScore');
 /*
  * This is the parent class for all games in the program.
  * Javascript does not support abstract classes, but this class should never
  * be instantiated directly.
  */
-
-// All of the actions are called with the game as the object. Parameters: (message, index, args)
 class Game {
-  constructor(id, channel, command) {
+  constructor(id, channel, command, name) {
     this.id = id;
     this.channel = channel;
     this.command = command;
-    this.players = {};
+    this.name = name;
+    this.players = new Collection();
     this.status = 'beginning';
+    this.winnerScore = 0;
   }
 
-  init(message, args) {
+  async init(message, args) {
     this.status = 'running';
+    this.gameEmbedMessage = await this.channel.send(this.gameEmbed);
     const opts = Object.getOwnPropertyNames(bot.commands.get(this.command).options);
     for (let i = 0; i < args.length; i += 1) {
       if (opts.includes(args[i])) {
@@ -26,58 +27,75 @@ class Game {
     }
   }
 
-  addPlayer(userID, otherProperties) {
-    this.players[userID] = {
-      id: userID,
-      game: this,
-      user: bot.users.get(userID),
-      playing: true,
-      leaveGame() {
-        this.game.channel.send(`${this.user} has left the game!`);
-
-        // Deletes this game from the player's list of games. Remember, this still references the
-        // game
-        const gamesList = servers[this.game.channel.guild.id].players[this.id];
-        gamesList.splice(gamesList.indexOf(this.id), 1);
-
-        this.playing = false;
-      // This later gets destroyed by the interval initiated in bot.js
-      },
-    };
-    Object.assign(this.players[userID], otherProperties);
-
-    // Adds this game's ID to the player's list of games
-    servers[this.channel.guild.id].players[userID][this.command] = this.id;
-    return this.players[userID];
+  get gameEmbed() {
+    const embed = new RichEmbed()
+      .setTitle(this.name)
+      .setFooter(`Type "${process.env.DEFAULT_PREFIX || '.'}${this.command} help" to get help about this function.`)
+      .setTimestamp();
+    return embed;
   }
 
-  /*
- * Sends a prompt to the game's channel, with the given reactions as options.
- */
-  async prompt(str, reactions, id) {
-    const msg = await this.channel.send(str).catch(logger.error);
-    for (const r of reactions) await msg.react(r);
+  updateGameEmbed() {
+    this.gameEmbedMessage.edit({ embed: this.gameEmbed });
+  }
 
-    const collected = await msg.awaitReactions((r, user) => reactions.includes(r.emoji.name) && user.id === id, { maxUsers: 1, time: 60 * 1000 });
+  addPlayer(userId, otherProperties) {
+    this.players.set(userId, Object.assign({
+      id: userId,
+      user: bot.users.get(userId),
+      playing: true,
+    }, otherProperties));
+
+    this.updateGameEmbed();
+    // Adds this game's ID to the player's list of games
+    return this.players.get(userId);
+  }
+
+  /**
+   * Sends a prompt to the game's channel, with the given reactions as options.
+   * @param {*} str the string to prompt the user with.
+   * @param {*} reactions options that the user can click.
+   * @param {*} id the id of the user that is expected to respond.
+   */
+  async prompt(str, reactions, id, filter, options) {
+    const msg = await this.channel.send(str);
+    await this.gameEmbedMessage.clearReactions();
+
+    const [, collected] = await Promise.all([
+      (async () => {
+        // eslint-disable-next-line no-await-in-loop
+        for (const r of reactions) await this.gameEmbedMessage.react(r);
+      })(),
+      (async () => this.gameEmbedMessage.awaitReactions(
+        filter || ((r, user) => reactions.includes(r.emoji.name) && user.id === id),
+        options || { maxUsers: 1, time: 60 * 1000 },
+      ))(),
+    ]);
+
+    await msg.delete();
+
     if (collected.size < 1) {
       this.status = 'ended';
-      return this.sendCollectorEndedMessage('timed out').catch(logger.error);
+      this.end('Collector timed out.');
+      return false;
     }
+
+    await this.gameEmbedMessage.clearReactions();
     return collected;
   }
 
-  sendCollectorEndedMessage(reason) {
-    this.channel.send(`Collector ended. ${reason ? `Reason: ${reason}. ` : ''}Your game has been cancelled. Type "${process.env.DEFAULT_PREFIX}${this.type} cancel" to cancel this game \
-     and then type ${process.env.DEFAULT_PREFIX}${this.type} to start a new one.`).catch(logger.error);
-  }
-
-  /*
- * Deletes the game and removes it from its players' lists.
- */
-  async end() {
-    this.players.forEach(player => player.leaveGame());
+  /**
+   * Marks the game for removal by the bot.
+   * @param {*} message an optional message to add.
+   * @param {object} options options to pass.
+   * @param {string} options.winner the winner
+   */
+  end(message, options = {}) {
     this.status = 'ended';
-    await this.channel.send(`${Object.values(this.players).map(p => p.user).join(', ')}, your ${this.type} games have ended.`).catch(logger.error);
+    this.channel.send(`${message ? `${message}\n` : ''}${this.players.map(p => p.user).join(', ')}, your ${this.name} games have ended. Type ${process.env.DEFAULT_PREFIX || '.'}${this.command} to start a new one.`);
+    if (options.winner && this.winnerScore) {
+      incScore(options.winner, this.channel.guild.id, this.winnerScore);
+    }
   }
 }
 
@@ -101,7 +119,7 @@ class Game {
 //         aliases: ['v'],
 //         usage: 'Resends the game board',
 //         action: async function () {
-//             const msg = await this.channel.send({embed: this.boardEmbed()}).catch(logger.error);
+//             const msg = await this.channel.send({embed: this.boardEmbed()});
 //             this.boardMessage = msg;
 //         }
 //     }

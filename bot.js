@@ -15,6 +15,13 @@ const prefix = process.env.DEFAULT_PREFIX || '.';
 logger.info('Initializing client');
 global.bot = new Client();
 bot.commands = new Collection();
+bot.games = new Collection();
+bot.error = (message, err) => {
+  message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR\n\`\`\`\n\`\`\`${err}\`\`\``);
+  logger.error('BEEP BOOP ERROR ERROR');
+  logger.error(err.stack);
+};
+
 Object.keys(commands).forEach((cmd) => {
   bot.commands.set(cmd, commands[cmd]);
   if (commands[cmd].aliases) {
@@ -28,17 +35,6 @@ Object.keys(commands).forEach((cmd) => {
 bot.on('ready', () => {
   logger.info(`${bot.user.username} is connected.`);
   bot.user.setActivity('with my board games', { type: 'PLAYING' });
-
-  /*
-     * Initializes the non-permanent servers, where data about games are stored.
-     * The hierarchy of data looks like this (example):
-     *                           servers
-     *         /-------------------^  ^--------------------\
-     *  games: {0: object Game, 1: object Game}      players: {user ID: [0, 2]}
-     *           \                                                      /
-     *            \----------------------------------------------------/
-     */
-  global.servers = {};
 });
 
 /**
@@ -46,22 +42,25 @@ bot.on('ready', () => {
  * server, it will run the command they type.
  */
 let args; let cmd;
-bot.on('message', async (message) => {
+bot.on('message', (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
 
-  if (!(message.content.indexOf(prefix) === 0)) return;
+  if (message.content.indexOf(prefix) !== 0) return;
 
   args = message.content.substring(1).split(' ');
   cmd = args.shift();
 
-  if (!bot.commands.has(cmd)) return message.channel.send('That is not a valid command. Please type .help to get help').catch(logger.error);
+  if (!bot.commands.has(cmd)) {
+    message.channel.send('That is not a valid command. Please type .help to get help');
+    return;
+  }
+
   try {
     logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     bot.commands.get(cmd).run(message, args);
   } catch (err) {
-    message.channel.send('Beep boop error error').catch(logger.error);
-    logger.error(err.stack);
+    bot.error(message, err);
   }
 });
 

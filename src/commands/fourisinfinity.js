@@ -15,11 +15,11 @@ module.exports = {
   },
   run(message, num) {
     if (!((parseInt(num, 10) >= 0) && (parseInt(num, 10) <= 999))) {
-      return message.channel.send('That is not a valid number. Please enter a number from 0 to 999.').catch(logger.error);
+      return message.channel.send('That is not a valid number. Please enter a number from 0 to 999.');
     }
 
     if (num === 4) {
-      return message.channel.send('And 4 is infinity!').catch(logger.error);
+      return message.channel.send('And 4 is infinity!');
     }
     const digits = `${num}`.split('').map(d => parseInt(d, 10));
 
@@ -37,7 +37,7 @@ module.exports = {
       else nextNum = `${ones[digits[0]]}hundred${tens[digits[1]]}${ones[digits[2]]}`;
     }
 
-    message.channel.send(`${num} is ${nextNum.length}`).catch(logger.error);
+    message.channel.send(`${num} is ${nextNum.length}`);
     return this.run(message, nextNum.length);
   },
 };

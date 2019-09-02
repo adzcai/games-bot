@@ -19,11 +19,12 @@ module.exports = {
   aliases: ['rps'],
   desc: 'Plays rock paper scissors',
   async run(message) {
-    if (message.mentions.members.size < 1) {
+    if (message.mentions.members.size < 1
+      || message.mentions.users.first().id === message.author.id) {
       message.channel.send('Please ping someone to challenge them!');
       return;
     }
-    message.channel.send('Wait for a DM to tell me your choice!').catch(logger.error);
+    message.channel.send('Wait for a DM to tell me your choice!');
     const players = [message.author, message.mentions.users.first()];
 
     Promise.all(players.map(async (player) => {
@@ -31,16 +32,13 @@ module.exports = {
         return Object.values(reactions)[Math.floor(Math.random() * 3)];
       }
 
-      const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?').catch(logger.error);
-      // eslint-disable-next-line no-restricted-syntax
-      for (const r of Object.keys(reactions)) {
-        // eslint-disable-next-line no-await-in-loop
-        await msg.react(r);
-      }
+      const msg = await player.send('Would you like to show 🇷ock, 🇵aper, or 🇸cissors?');
+      // eslint-disable-next-line no-await-in-loop
+      for (const r of Object.keys(reactions)) await msg.react(r);
 
-      const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 }).catch(logger.error);
+      const collected = await msg.awaitReactions((r, user) => ['🇷', '🇵', '🇸'].includes(r.emoji.name) && user.id === player.id, { maxUsers: 1, time: 60 * 1000 });
       if (collected.size < 1) {
-        return message.channel.send('The collector timed out. Please play again!').catch(logger.error);
+        return message.channel.send('The collector timed out. Please play again!');
       }
 
       player.send(`You chose ${collected.first().emoji.name}.`);
@@ -56,12 +54,12 @@ module.exports = {
       } else {
         const winner = p1won === 1 ? players[0] : players[1];
         const loser = p1won === 1 ? players[1] : players[0];
-        result += `${winner} won. GG! \`+5\` points!\nToo bad, ${loser}: you lose \`3\` points. :(`;
-        incScore(winner.id, message.guild.id, 5);
-        incScore(loser.id, message.guild.id, -3);
+        result += `${winner} won. GG! \`+10\` points!\nToo bad, ${loser}: you lose \`5\` points. :(`;
+        incScore(winner.id, message.guild.id, 10, err => err && bot.error(err));
+        incScore(loser.id, message.guild.id, -5, err => err && bot.error(err));
       }
 
-      return message.channel.send(result).catch(logger.error);
+      return message.channel.send(result);
     });
   },
 };

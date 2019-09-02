@@ -16,6 +16,10 @@ class BoardGameState {
     return this._contents.slice();
   }
 
+  insert(i, val) {
+    this._contents[i] = val;
+  }
+
   score(humanPlayerSymbol) {
     if (this.result === `${humanPlayerSymbol}-won`) return 10 - this.aiMovesCount;
     if (this.result === `${(humanPlayerSymbol === 'O') ? 'X' : 'O'}-won`) return -10 + this.aiMovesCount;
@@ -44,15 +48,21 @@ class BoardGameState {
     let result = '';
     const numbers = ['zero', 'one', 'two', 'three'];
 
-    for (let row = 0; row < this.height; row++) {
+    for (let row = 0; row < this.height; row += 1) {
       result += `:${numbers[this.height - row]}:`;
-      for (let col = 0; col < this.width; col++) result += this.emptyCells().includes(row * this.width + col) ? ':black_large_square:' : (this.contents[row * this.width + col] === 'X' ? ':regional_indicator_x:' : ':regional_indicator_o:');
+      for (let col = 0; col < this.width; col += 1) {
+        if (this.emptyCells().includes(row * this.width + col)) {
+          result += ':black_large_square:';
+        } else {
+          result += this.contents[row * this.width + col] === 'X' ? ':regional_indicator_x:' : ':regional_indicator_o:';
+        }
+      }
       result += '\n';
     }
 
     result += ':black_large_square:';
     const a = 'a'.charCodeAt(0);
-    for (let col = 0; col < 3; col++) result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
+    for (let col = 0; col < 3; col += 1) result += `:regional_indicator_${String.fromCharCode(a + col)}:`;
     return result;
   }
 }
