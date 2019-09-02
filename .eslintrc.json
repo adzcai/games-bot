@@ -25,6 +25,6 @@
                 "props": false
             }
         ],
-        "no-restricted-syntax": "warn"
+        "no-restricted-syntax": "warn",
     }
 }

@@ -2,17 +2,25 @@ require('dotenv').config();
 
 const assert = require('assert');
 const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
 const fs = require('fs');
-const path = require('path');
+const http = require('http');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const path = require('path');
+const session = require('express-session');
+const SocketIO = require('socket.io');
+
 const MongoStore = require('connect-mongo')(session);
 
-require('./src/util/logger');
+const routes = require('./server/routes');
+const discordRoutes = require('./server/api/discord');
+const authRoutes = require('./server/routes/auth');
+const { checkAuth } = require('./server/middleware');
+const asyncMiddleware = require('./server/asyncMiddleware');
+
+require('./src/util//logger');
 require('./src/util/exitHandler');
 require('./bot');
-
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.NODE_ENV === 'local' ? 'mongodb://localhost/gamesBot' : process.env.MONGODB_URI;
@@ -26,16 +34,8 @@ mongoose.connection
   });
 
 const app = express();
-/* eslint-disable import/order */
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const asyncMiddleware = require('./server/asyncMiddleware');
-/* eslint-enable import/order */
-
-function checkAuth(req, res, next) {
-  if (req.isAuthenticated()) next();
-  else res.status(403).render('pages/error', { code: 403, message: 'not logged in :(' });
-}
+const server = http.createServer(app);
+const io = SocketIO(server);
 
 app
   .use(session({
@@ -55,10 +55,12 @@ app
     res.locals.bot = bot;
     next();
   }))
-  .get('/', (req, res) => res.render('pages/index'))
-  .get('/commands', (req, res) => res.render('pages/commands'))
-  .use('/api/discord', require('./server/api/discord'))
-  .use('/games', checkAuth, require('./server/routes/games'))
+
+  .use(routes)
+  .use('/api/discord', discordRoutes)
+  .use(checkAuth)
+  .use(authRoutes)
+
   .use((req, res) => {
     res.status(404).render('pages/error', { code: 404, message: 'The page you were looking for does not exist' });
   })
@@ -82,4 +84,4 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(PORT, () => logger.info(`Listening on http://localhost:${PORT}`));
+server.listen(PORT, () => logger.info(`Listening on http://localhost:${PORT}`));
