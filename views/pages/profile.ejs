@@ -1,0 +1,25 @@
+<% include ../partials/header.ejs %>
+
+<div class="jumbotron">
+  <div class="row">
+    <div class="col-3">
+      <img class="rounded img-fluid d-inline-block" src="<%= user.user.avatarURL %>">
+    </div>
+    <div class="col-9">
+      <h1 class="display-1"><%= user.username %></h1>
+      <h1>Score: <%= totalScore %></h1>
+      <div class="row">
+        <div class="col-9 text-center">Server</div>
+        <div class="col-3 text-center">Score</div>
+      </div>
+      <div class="row">
+        <% for (const s of scores) { %>
+          <div class="col-9 text-center"><%= (s.guild ? s.guild.name : 'Missing') %></div>
+          <div class="col-3 text-center"><%= s.score %></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% include ../partials/footer.ejs %>

@@ -29,11 +29,15 @@
           <a class="btn btn-primary" href="/api/discord/login">Login through discord</a>
         </li>
       <% } else { %>
-        <li class="nav-item">
-          <a class="nav-link" href="#">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <img class="rounded mr-1 align-top d-inline-block" src="<%= user.user.avatarURL %>" width="30" height="30">
             <span class="align-middle d-inline-block"><%= user.username %></span>
           </a>
+          <div class="dropdown-menu" aria-labelledby="profileDropdown">
+            <a href="/profile" class="dropdown-item">Profile</a>
+            <a href="/logout" class="dropdown-item">Logout</a>
+          </div>
         </li>
       <% } %>
     </ul>
