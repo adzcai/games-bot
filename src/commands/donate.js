@@ -3,7 +3,10 @@ const incScore = require('../util/incScore');
 module.exports = {
   desc: 'Give your points to someone else',
   options: {
-
+    '@player': {
+      desc: 'The player to give points to',
+      required: true,
+    },
   },
   run(message, args) {
     const p2 = message.mentions.users.first();
