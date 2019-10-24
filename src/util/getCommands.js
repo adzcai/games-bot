@@ -7,7 +7,6 @@ const defineAliases = require('./defineAliases');
  * and then loads each file in the gameclasses folder into the
  * same object if it has a command
  */
-
 function generateCommand(data, game) {
   const defaults = game ? { run: (message, args) => startGame(message, args, game) } : {};
   const cmdData = Object.assign(defaults, data);

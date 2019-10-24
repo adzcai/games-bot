@@ -23,53 +23,23 @@ function milliToMinsSecs(milli) {
 }
 
 class SpyfallGame extends Game {
-  constructor(id, channel) {
-    super(id, channel, 'spyfall', 'Spyfall');
-  }
+  constructor(id, message) {
+    super(id, message.channel, 'spyfall', 'Spyfall');
 
-  async init(message, args) {
-    await super.init(message, args);
-
+    // Big chunk of variables to initialize
+    this.initialSender = message.author;
     this.version = this.version || '1';
     this.gameTime = 8 * 60 * 1000;
     this.remaining = this.gameTime;
     if (this.version === '1') [this.locations] = locations;
     else if (this.version === '2') [, this.locations] = locations;
     else if (this.version === '3') this.locations = locations[0].concat(locations[1]);
-
     this.benchmarks = timeBenchmarks;
-    // eslint-disable-next-line no-continue
     while (this.benchmarks[this.benchmarks.length - 1] > this.gameTime) this.benchmarks.pop();
 
-    this.addPlayer(message.author.id, { isSpy: false, scratched: [] });
-    const prmpt = await this.channel.send(`Tap the button to join the game! ${message.author}, tap the flag whenever you're ready to begin.`);
-    const collector = prmpt.createReactionCollector(
-      (r, user) => (r.emoji.name === '🤝' && !user.bot) || (r.emoji.name === '🚩' && user.id === message.author.id),
-      { time: 5 * 60 * 1000 },
-    );
-
-    collector.on('collect', (reaction) => {
-      if (reaction.emoji.name === '🚩') collector.stop();
-      else {
-        const playerIds = reaction.users.filter(user => !user.bot).keyArray();
-        if (!playerIds.includes(message.author.id)) playerIds.push(message.author.id);
-        this.players.clear();
-        playerIds.forEach((id) => {
-          this.addPlayer(id, { isSpy: false, scratched: [] });
-        });
-        this.updateGameEmbed();
-      }
-    });
-
-    collector.on('end', () => this.start());
-
-    bot.on('messageReactionRemove', (reaction, user) => {
-      if (reaction.emoji.name === '🤝' && reaction.message.id === prmpt.id) this.players.delete(user.id);
-      this.updateGameEmbed();
-    });
-
-    await prmpt.react('🤝');
-    await prmpt.react('🚩');
+    this.gameEmbedMessage = this.channel.send(this.gameEmbed);
+    this.addPlayer(this.initialSender.id, { isSpy: false, scratched: [] });
+    this.gatherPlayers(this.initialSender, this.start);
   }
 
   start() {
@@ -124,6 +94,8 @@ class SpyfallGame extends Game {
     return embed;
   }
 }
+
+SpyfallGame.command = 'spyfall';
 
 module.exports = {
   cmd: 'spyfall',

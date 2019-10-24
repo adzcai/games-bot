@@ -1,5 +1,6 @@
 const { RichEmbed, Collection } = require('discord.js');
 const incScore = require('../util/incScore');
+
 /*
  * This is the parent class for all games in the program.
  * Javascript does not support abstract classes, but this class should never
@@ -16,15 +17,47 @@ class Game {
     this.winnerScore = 0;
   }
 
-  async init(message, args) {
+  run(message, args) {
+    const { options } = bot.commands.get(this.command);
+    args.forEach((arg, i) => {
+      if (arg in options) { options[arg].action.call(this, message, i, args); }
+    });
+  }
+
+  start() {
     this.status = 'running';
-    this.gameEmbedMessage = await this.channel.send(this.gameEmbed);
-    const opts = Object.getOwnPropertyNames(bot.commands.get(this.command).options);
-    for (let i = 0; i < args.length; i += 1) {
-      if (opts.includes(args[i])) {
-        bot.commands.get(this.command).options[args[i]].action.call(this, message, i, args);
+    this.channel.send('This game has not been implemented yet!');
+  }
+
+  async gatherPlayers(initialSender, cb) {
+    const prmpt = await this.channel.send(`Tap the button to join the game! ${initialSender}, tap the flag whenever you're ready to begin.`);
+    const collector = prmpt.createReactionCollector(
+      (r, user) => (r.emoji.name === '🤝' && !user.bot) || (r.emoji.name === '🚩' && user.id === initialSender.id),
+      { time: 5 * 60 * 1000 },
+    );
+
+    collector.on('collect', (reaction) => {
+      if (reaction.emoji.name === '🚩') collector.stop();
+      else {
+        const playerIds = reaction.users.filter(user => !user.bot).keyArray();
+        if (!playerIds.includes(initialSender.id)) playerIds.push(initialSender.id);
+        this.players.clear();
+        playerIds.forEach((id) => {
+          this.addPlayer(id, { isSpy: false, scratched: [] });
+        });
+        this.updateGameEmbed();
       }
-    }
+    });
+
+    collector.on('end', () => cb());
+
+    bot.on('messageReactionRemove', (reaction, user) => {
+      if (reaction.emoji.name === '🤝' && reaction.message.id === prmpt.id) this.players.delete(user.id);
+      this.updateGameEmbed();
+    });
+
+    await prmpt.react('🤝');
+    await prmpt.react('🚩');
   }
 
   get gameEmbed() {
@@ -45,9 +78,6 @@ class Game {
       user: bot.users.get(userId),
       playing: true,
     }, otherProperties));
-
-    this.updateGameEmbed();
-    // Adds this game's ID to the player's list of games
     return this.players.get(userId);
   }
 
@@ -100,29 +130,23 @@ class Game {
 }
 
 // Static functions
-// const defaultOptions = {
-//     leave: {
-//         aliases: ['leave', 'l', 'quit', 'q'],
-//         usage: 'Leaves the game',
-//         action: function (message) {
-//             this.leaveGame(message.author.id);
-//         }
-//     },
-//     cancel: {
-//         aliases: ['c'],
-//         usage: 'If the user is in a game, cancels it',
-//         action: function () {
-//             this.end();
-//         }
-//     },
-//     view: {
-//         aliases: ['v'],
-//         usage: 'Resends the game board',
-//         action: async function () {
-//             const msg = await this.channel.send({embed: this.boardEmbed()});
-//             this.boardMessage = msg;
-//         }
-//     }
-// };
+const defaultOptions = {
+  leave: {
+    aliases: ['leave', 'l', 'quit', 'q'],
+    usage: 'Leaves the game',
+    action(message) {
+      this.leaveGame(message.author.id);
+    },
+  },
+  cancel: {
+    aliases: ['c'],
+    usage: 'If the user is in a game, cancels it',
+    action() {
+      this.end();
+    },
+  },
+};
+
+Game.defaultOptions = defaultOptions;
 
 module.exports = Game;
