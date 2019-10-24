@@ -44,6 +44,8 @@ app
     saveUninitialized: false,
     store: new MongoStore({ mongooseConnection: mongoose.connection }),
   }))
+  .use(express.json())
+  .use(express.urlencoded({ extended: false }))
   .use(passport.initialize())
   .use(passport.session())
   .use(express.static(path.join(__dirname, 'public')))

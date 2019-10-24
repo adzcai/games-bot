@@ -1,0 +1,28 @@
+<% include ../partials/header.ejs %>
+
+<p>Category: <%= data.category %></p>
+<p>Topic: <%= data.topic %></p>
+<p><%= data.instruction %></p>
+
+<math><%- data.question %></math>
+
+<p>Options:</p>
+<form onsubmit="showAnswer(); return false;">
+  <% for (let i = 0; i < data.choices.length; i++) { %>
+    <div class="form-check">
+      <input type="radio" class="form-check-input" name="answer" id="answer-<%= i %>" value="<%= i %>">
+      <label for="answer-<%= i %>" class="form-check-label">
+        <math><%- data.choices[i] %></math>
+      </label>
+    </div>
+  <% } %>
+  <input type="hidden" name="questionId" id="question-id" value="<%= data.id %>">
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<div class="mt-3 alert alert-success" id="solved" style="display: none;">Solved! <a href="/random-math-question">Try a new problem</a></div>
+<div class="mt-3 alert alert-danger" id="incorrect" style="display: none;">Incorrect answer... try again!</div>
+
+<script src="/assets/js/randomMathQuestion.js"></script>
+
+<% include ../partials/footer.ejs %>
