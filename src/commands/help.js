@@ -35,12 +35,13 @@ module.exports = {
       return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`);
     }
 
+    // The permissions that the bot has are: View Channels, Send Messages, Manage Messages, Embed Links, Read Message History, Add Reactions
     const help = new RichEmbed()
       .setTitle('Help')
       .setDescription('Hi, I\'m the Games Bot! Are you having a fun time?')
       .addField('Info', 'Click [here](https://piguyinthesky.github.io/games-bot/) to visit GamesBot\'s site! (It\'s a work in progress)')
       .addField('Contribute', 'I\'m a Node.js app written using discord.js. If you want to help out, feel free to open up a pull request on my [github repo](https://github.com/piguyinthesky/games-bot)')
-      .addField('Invite', 'Click [here](https://discordapp.com/oauth2/authorize?client_id=468534527573098506&permissions=8&scope=bot) to invite GamesBot to your server!');
+      .addField('Invite', 'Click [here](https://discordapp.com/oauth2/authorize?client_id=468534527573098506&permissions=93248&scope=bot) to invite GamesBot to your server!');
 
     const cmds = new RichEmbed()
       .setTitle('Commands')
