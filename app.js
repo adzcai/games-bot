@@ -18,7 +18,7 @@ const authRoutes = require('./server/routes/auth');
 const { checkAuth } = require('./server/middleware');
 const asyncMiddleware = require('./server/asyncMiddleware');
 
-require('./src/util//logger');
+require('./src/util/logger');
 require('./src/util/exitHandler');
 require('./bot');
 
