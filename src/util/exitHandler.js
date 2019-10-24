@@ -22,9 +22,10 @@ process.on('SIGINT', exitHandler);
 process.on('SIGTERM', exitHandler);
 process.on('SIGUSR1', exitHandler);
 process.on('SIGUSR2', exitHandler);
+
 /**
  * We set up an uncaught exception capture callback so that the bot keeps running even when an
- * error occurs
+ * error occurs... this is not a very good practice but I want to keep the bot up
  */
 process.setUncaughtExceptionCaptureCallback((err) => {
   logger.error('An uncaught exception occurred:');
