@@ -25,6 +25,8 @@
                 "props": false
             }
         ],
-        "no-restricted-syntax": "warn",
+        "no-restricted-syntax": "off",
+        "no-underscore-dangle": "off",
+        "func-names": "off"
     }
 }
