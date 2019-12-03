@@ -11,6 +11,7 @@ module.exports = {
   options: {
     gender: {
       desc: 'The gender of the character.',
+      noflag: true,
     },
   },
   run(message, args) {

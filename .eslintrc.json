@@ -27,6 +27,7 @@
         ],
         "no-restricted-syntax": "off",
         "no-underscore-dangle": "off",
-        "func-names": "off"
+        "func-names": "off",
+        "no-await-in-loop": "off"
     }
 }

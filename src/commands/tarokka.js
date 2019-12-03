@@ -1,6 +1,6 @@
+const { Collection } = require('discord.js');
 const tarokka = require('../util/tarokka.json');
 const capitalize = require('../util/capitalize');
-const { Collection } = require('discord.js');
 
 class Card {
   constructor(name, suit, num) {
@@ -16,17 +16,15 @@ class Card {
         info: tarokka['Strahd\'s Location in the Castle'].location[num],
       };
     } else {
-      this.num = ((num + 1) % 10) || 'Master';
-      this.description = tarokka['Treasure Location'].description[suit][num]
-      this.info = tarokka['Treasure Location'].location[suit][num]
+      this.num = ((num + 1) % 10).toString() || 'Master';
+      this.description = tarokka['Treasure Location'].description[suit][num];
+      this.info = tarokka['Treasure Location'].location[suit][num];
     }
   }
 
   repr(show, category) {
-    if (this.suit === 'High')
-      return `${this.name}\n- ${this[category].description}${show ? `\n- ${this[category].info}` : ''}`;
-    else
-      return `${this.num} of ${this.suit} — ${this.name}\n- ${this.description}${show ? `\n- ${this.info}` : ''}`;
+    if (this.suit === 'High') return `${this.name}\n- ${this[category].description}${show ? `\n- ${this[category].info}` : ''}`;
+    return `${this.num} of ${this.suit} — ${this.name}\n- ${this.description}${show ? `\n- ${this.info}` : ''}`;
   }
 }
 
@@ -43,33 +41,41 @@ const cards = {
   Stars: ['Transmuter', 'Diviner', 'Enchanter', 'Abjurer', 'Elementalist', 'Evoker', 'Illusionist', 'Necromancer', 'Conjurer', 'Wizard'],
   Coins: ['Swashbucker', 'Philanthropist', 'Trader', 'Merchant', 'Guild Member', 'Beggar', 'Thief', 'Tax Collector', 'Miser', 'Rogue'],
   Glyphs: ['Monk', 'Missionary', 'Healer', 'Shepherd', 'Druid', 'Anarchist', 'Charlatan', 'Bishop', 'Traitor', 'Priest'],
-  High: ['Artifact', 'Beast', 'Broken One', 'Darklord', 'Donjon', 'Seer', 'Ghost', 'Executioner', 'Horseman', 'Innocent', 'Marionette', 'Mists', 'Raven', 'Tempter']
-}
+  High: ['Artifact', 'Beast', 'Broken One', 'Darklord', 'Donjon', 'Seer', 'Ghost', 'Executioner', 'Horseman', 'Innocent', 'Marionette', 'Mists', 'Raven', 'Tempter'],
+};
 
 const commonDeck = new Collection();
 
 Object.keys(cards).forEach((suit) => {
   cards[suit].forEach((name, i) => {
     commonDeck.set(name, new Card(name, suit, i));
-  })
+  });
 });
 
+const iToCategory = (i) => {
+  if (i === 3) return 'strahdsEnemy';
+  if (i === 4) return 'strahdsLocationInTheCastle';
+  return '';
+};
+
 module.exports = {
+  desc: 'Generates a tarokka deck for Curse of Strahd.',
   run(message, args) {
     if (args.length === 0) {
       const [high, common] = commonDeck.partition(card => card.suit === 'High');
-      const cards = common.random(3).concat(high.random(2));
-      const msg = cards.map((card, i) => `\`\`\`diff\n[${i+1}] ${PROMPTS[i]}\n+ ${card.repr(false, [,,, 'strahdsEnemy', 'strahdsLocationInTheCastle'][i])}\`\`\``).join('\n');
+      const generated = common.random(3).concat(high.random(2));
+      const msg = generated.map((card, i) => `\`\`\`diff\n[${i + 1}] ${PROMPTS[i]}\n+ ${card.repr(false, iToCategory(i))}\`\`\``).join('\n');
       message.channel.send(msg);
     } else if (args.length === 1) {
-      const cards = commonDeck.filter(card => card.suit === capitalize(args[0]));
-      const str = cards.map(card => card.name).join(', ');
+      const generated = commonDeck.filter(card => card.suit === capitalize(args[0]));
+      const str = generated.map(card => card.name).join(', ');
       message.channel.send(str);
     } else if (args.length === 2) {
-      const card = commonDeck.find(card => card.suit === capitalize(args[1]) && capitalize(args[0]) == card.num);
+      const [num, suit] = args;
+      const card = commonDeck.find(c => capitalize(num) === c.num && c.suit === capitalize(suit));
       message.channel.send(`\`\`\`${card.repr(false)}\`\`\``);
     } else {
-      message.channel.send('Please type `.help tarokka` for more information!')
+      message.channel.send('Please type `.help tarokka` for more information!');
     }
-  }
-}
+  },
+};
