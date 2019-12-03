@@ -20,6 +20,8 @@ module.exports = {
     let msg = 'React to the emoji corresponding with the class you want to play!';
     msg += Object.keys(emojis).map(cls => `\n${cls}: ${emojis[cls]}`);
     const sent = await message.channel.send(msg);
-    for (const emoji of Object.values(emojis)) await sent.react(emoji);
+    for (const emoji of Object.values(emojis)) {
+      await sent.react(emoji);
+    }
   },
 };

@@ -35,7 +35,8 @@ module.exports = {
       return message.channel.send(`${args[0]} is not a valid command. Type .help to get a list of valid commands.`);
     }
 
-    // The permissions that the bot has are: View Channels, Send Messages, Manage Messages, Embed Links, Read Message History, Add Reactions
+    // The permissions that the bot has are: View Channels, Send Messages, Manage Messages,
+    // Embed Links, Read Message History, Add Reactions
     const help = new RichEmbed()
       .setTitle('Help')
       .setDescription('Hi, I\'m the Games Bot! Are you having a fun time?')
