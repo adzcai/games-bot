@@ -7,20 +7,19 @@
  * Feel free to make a pull request or post any errors you find, even if it's just messy code.
  */
 
+require('dotenv').config();
+const debug = require('debug')('games-bot:bot');
 const { Client, Collection } = require('discord.js');
 const commands = require('./src/util/getCommands');
 
 const prefix = process.env.DEFAULT_PREFIX || '.';
 
-logger.info('Initializing client');
-global.bot = new Client();
+debug('Initializing client');
+
+const bot = new Client();
 bot.commands = new Collection();
 bot.games = new Collection();
-bot.error = (message, err) => {
-  message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR\n\`\`\`\n\`\`\`${err}\`\`\``);
-  logger.error('BEEP BOOP ERROR ERROR');
-  logger.error(err.stack);
-};
+bot.dicecloudUsers = new Collection();
 
 Object.keys(commands).forEach((cmd) => {
   bot.commands.set(cmd, commands[cmd]);
@@ -33,7 +32,7 @@ Object.keys(commands).forEach((cmd) => {
 
 // From the discord.js docs: "Emitted when the client becomes ready to start working."
 bot.on('ready', () => {
-  logger.info(`${bot.user.username} is connected.`);
+  debug(`${bot.user.username} is connected.`);
   bot.user.setActivity('with my board games', { type: 'PLAYING' });
 });
 
@@ -41,7 +40,7 @@ bot.on('ready', () => {
  * The main command for handling messages. If the message starts with the prefix for the bot on the
  * server, it will run the command they type.
  */
-let args; let cmd;
+let args, cmd;
 bot.on('message', (message) => {
   if (message.author.bot) return;
   if (message.channel.type !== 'text') return;
@@ -57,10 +56,11 @@ bot.on('message', (message) => {
   }
 
   try {
-    logger.info(`message responded from user ${message.author.username}. Content: "${message.content}"`);
+    debug(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     bot.commands.get(cmd).run(message, args);
   } catch (err) {
-    bot.error(message, err);
+    message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR\n\`\`\`\n\`\`\`${err}\`\`\``);
+    debug(err);
   }
 });
 

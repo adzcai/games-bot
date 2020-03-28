@@ -8,7 +8,7 @@ module.exports = {
       serverId: message.guild.id,
     }, (err, res) => {
       if (err) {
-        logger.error(err);
+        debug(err);
         return message.reply('Sorry, an error occurred!');
       }
 

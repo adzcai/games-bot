@@ -1,0 +1,31 @@
+{
+  "name": "@games-bot/web",
+  "version": "0.0.0",
+  "description": "The website for GamesBot, a high school student's hobby project.",
+  "keywords": [
+    "discord.js",
+    "board",
+    "game"
+  ],
+  "author": "Alexander Cai <alexandercai@outlook.com>",
+  "homepage": "https://github.com/piguyinthesky/games-bot/tree/master/packages/web#readme",
+  "license": "MIT",
+  "main": "src/app.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piguyinthesky/games-bot.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/piguyinthesky/games-bot/issues"
+  }
+}

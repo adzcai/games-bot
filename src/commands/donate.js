@@ -11,7 +11,7 @@ module.exports = {
   run(message, args) {
     const p2 = message.mentions.users.first();
     if (!p2) return message.reply('Please ping someone to give points to!');
-    logger.info(args);
+    debug(args);
     const amt = parseInt(args[1], 10);
     if (!amt) return message.reply('Please enter a positive number!');
     return incScore(message.author.id, message.guild.id, -amt, (err) => {

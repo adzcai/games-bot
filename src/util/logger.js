@@ -4,7 +4,7 @@ const {
   combine, timestamp, colorize, json, simple,
 } = format;
 
-global.logger = createLogger({
+module.exports = createLogger({
   transports: [
     new transports.Console({
       format: combine(timestamp(), colorize(), json(), simple()),

@@ -18,19 +18,18 @@ const authRoutes = require('./server/routes/auth');
 const { checkAuth } = require('./server/middleware');
 const asyncMiddleware = require('./server/asyncMiddleware');
 
-require('./src/util//logger');
+require('./src/util/logger');
 require('./src/util/exitHandler');
-require('./bot');
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.NODE_ENV === 'local' ? 'mongodb://localhost/gamesBot' : process.env.MONGODB_URI;
-assert(typeof MONGODB_URI !== 'undefined', 'Did you put create MONGODB_URI as an environment variable?');
+assert(typeof MONGODB_URI !== 'undefined', 'Did you put MONGODB_URI as an environment variable?');
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useFindAndModify: false });
 mongoose.connection
-  .on('error', logger.error.bind(logger, 'connection error:'))
+  .on('error', debug.bind(logger, 'connection error:'))
   .once('open', () => {
-    logger.info('connected to the database');
+    debug('connected to the database');
   });
 
 const app = express();
@@ -39,7 +38,7 @@ const io = SocketIO(server);
 
 app
   .use(session({
-    secret: 'keyboard cat',
+    secret: process.env.SESSION_SECRET || 'keyboard cat',
     resave: false,
     saveUninitialized: false,
     store: new MongoStore({ mongooseConnection: mongoose.connection }),
@@ -72,7 +71,7 @@ app
   }));
 
 io.on('connection', (socket) => {
-  logger.info(`User ${socket.id} connected`);
+  debug(`User ${socket.id} connected`);
   fs.readdirSync('./server/socketEvents').forEach((fname) => {
     if (!fname.endsWith('.js')) return;
     const eventName = fname.slice(0, -3);
@@ -81,9 +80,9 @@ io.on('connection', (socket) => {
       const cmd = require(`./server/socketEvents/${eventName}`);
       socket.on(eventName, cmd.bind(null, socket));
     } catch (e) {
-      logger.error(`Error reading event ${eventName}: `, e);
+      debug(`Error reading event ${eventName}: `, e);
     }
   });
 });
 
-server.listen(PORT, () => logger.info(`Listening on http://localhost:${PORT}`));
+server.listen(PORT, () => debug(`Listening on http://localhost:${PORT}`));

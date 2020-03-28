@@ -13,8 +13,8 @@ const handle = setInterval(pruneEndedGames, 5 * 1000);
  */
 function exitHandler(exitCode) {
   clearInterval(handle);
-  logger.info('Interval cleared');
-  if (exitCode) logger.info(`Exit code: ${exitCode}`);
+  debug('Interval cleared');
+  if (exitCode) debug(`Exit code: ${exitCode}`);
   process.exit();
 }
 
@@ -28,6 +28,6 @@ process.on('SIGUSR2', exitHandler);
  * error occurs... this is not a very good practice but I want to keep the bot up
  */
 process.setUncaughtExceptionCaptureCallback((err) => {
-  logger.error('An uncaught exception occurred:');
-  logger.error(err.stack);
+  debug('An uncaught exception occurred:');
+  debug(err.stack);
 });

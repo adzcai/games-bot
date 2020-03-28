@@ -7,7 +7,7 @@ module.exports = {
       time: 60 * 1000,
     });
     collector.on('end', (collected) => {
-      logger.info(collected.first().emoji.name);
+      debug(collected.first().emoji.name);
     });
   },
 };
