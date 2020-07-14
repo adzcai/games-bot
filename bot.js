@@ -59,7 +59,7 @@ bot.on('message', (message) => {
     debug(`message responded from user ${message.author.username}. Content: "${message.content}"`);
     bot.commands.get(cmd).run(message, args);
   } catch (err) {
-    message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR\n\`\`\`\n\`\`\`${err}\`\`\``);
+    message.channel.send(`\`\`\`diff\n- BEEP BOOP ERROR ERROR -\n\`\`\`\n\`\`\`${err}\`\`\``);
     debug(err);
   }
 });
